@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using OpiskelijanKuvapankki2_0.Models;
 using Microsoft.EntityFrameworkCore;
 using static System.Net.WebRequestMethods;
+using OpiskelijanKuvapankki2_0.Services;
 namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ImagesController(OpiskelijanKuvapankki2_0Context _db) : ControllerBase
+    public class ImagesController(OpiskelijanKuvapankki2_0Context _db, ImageService _imageservice) : ControllerBase
     {
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
+        private readonly ImageService imageservice = _imageservice;
+
 
         [HttpGet("/kuva/{imagename}")]
         [AllowAnonymous]
@@ -27,10 +30,10 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
         [HttpGet]
         [AllowAnonymous]//salli kirjautumaton käyttäjä
-        public async Task<ActionResult<IEnumerable<Image>>> HaeKaikkiKuvat()
+        public async Task<ActionResult<IEnumerable<Image>>> GetAllImages()
         {
 
-            var images = await db.Images.Include(c => c.Category).ToListAsync(); 
+            var images = await db.Images.Include(c => c.Category).ToListAsync();
 
             var logins = await db.Logins.ToListAsync();
 
@@ -42,9 +45,70 @@ namespace OpiskelijanKuvapankki2_0.Controllers
                 Category = image.Category?.CategoryName,
                 Photographer = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Name,
                 Contact = logins.FirstOrDefault(l => l.LoginId == image.LoginId)?.Contact,
-                ImageLink = image.ImageLink 
+                ImageLink = image.ImageLink
             }).ToList();
             return Ok(imageDetails);
         }
+
+
+        [HttpPost("Upload")]
+        [Consumes("multipart/form-data")] //ottaa vastaan lomakkeen
+        public async Task<ActionResult<Image>> AddNew([FromForm] int LoginId, [FromForm] int CategoryId, [FromForm] string ImageName, IFormFile ImageBytes)
+        {
+            var imageCount = db.Images.Count();
+            List<string> allowedFileTypes = new List<string> { "image/jpeg", "image/png", "image/jpg", "image/webp" };
+            var form = await Request.ReadFormAsync(); //tallennetaan lomake muuttujaan
+            var file = ImageBytes; //tallennetaan tiedosto muuttujaan
+
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("Tiedostoa ei löytynyt");
+                }
+                if (!allowedFileTypes.Contains(file.ContentType))
+                {
+                    return BadRequest(new { Message = "Tätä tiedostoa ei voida tallentaa. Sallitut tiedostomuodot ovat jpg,jpeg,png,webp" });
+                }
+                if (imageCount > 1000)
+                {
+                    return BadRequest(new { Message = "Kuvapankin enimmäiskoko on ylitetty eikä kuvaa voitu ladata palveluun." });
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream); //kopioidaan tiedoston sisältö
+                    memoryStream.Seek(0, SeekOrigin.Begin); //palautetaan streami alkuun
+                    var binaryfile = await imageservice.DowngradeImageAsync(memoryStream);//Palauttaa muokatun tiedoston
+
+                    var url = Url.Action("ReturnImage", "Images", new { ImageName }, Request.Scheme); //api end point joka palauttaa kuvan
+
+
+
+
+                    var newimage = new Image  //Muodostetaan kuvaolio
+                    {
+                        ImageName = form["ImageName"].ToString(),
+                        ImageLink = url,
+                        ImageBytes = binaryfile,
+                        CategoryId = int.Parse(form["CategoryId"].ToString()),
+                        LoginId = int.Parse(form["LoginId"].ToString()),
+
+                    };
+
+                    db.Images.Add(newimage);
+                    await db.SaveChangesAsync();
+
+
+
+                    return Ok($"Lisättiin uusi kuva {newimage.ImageName}");
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest("Tapahtui virhe. Lue lisää: " + e.InnerException);
+            }
+        }
+
     }
 }
