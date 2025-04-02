@@ -19,6 +19,29 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             return Ok(categories);
         }
 
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public ActionResult GetOneCategory(int id)
+        {
+            try
+            {
+                var categ = db.Categories.Find(id);
+
+                if (categ != null)
+                {
+                    return Ok(categ);
+                }
+                else
+                {
+                    return NotFound("Kategoriaa ei löydy");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Jotain meni pieleen." + ex.InnerException);
+            }
+        }
+
         [HttpPost]
         public ActionResult AddNewCategory([FromBody] Category newcategory)
         {
@@ -70,6 +93,20 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             {
                 return BadRequest(e.InnerException);
             }
+        }
+
+        [HttpPut("{id}")]
+        public ActionResult ChangeCategoryName(int id,string newname)
+        {
+            var renamedcategory = db.Categories.Find(id);
+            if (renamedcategory != null)
+            {
+                renamedcategory.CategoryName = newname;
+                db.SaveChanges();
+                return Ok("Muutettu kategorian nimi muotoon " + renamedcategory.CategoryName);
+                
+            }
+            return NotFound("Kategoriaa ei löytynyt id:llä " + id);
         }
 
 
