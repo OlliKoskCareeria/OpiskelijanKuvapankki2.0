@@ -14,7 +14,7 @@
 
 appsettings.json
 launchSettings.json
-services/UserService.cs
+Services/UserService.cs
 OpiskelijanKuvapankki2_0.http
 appsettings.Development.json
 
