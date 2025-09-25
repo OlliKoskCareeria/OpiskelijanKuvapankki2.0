@@ -29,17 +29,24 @@ namespace OpiskelijanKuvapankki2_0.Controllers
                 }
                 if (newuser.Email.EndsWith(userservice.BasicUser()) || newuser.Email == userservice.AdminUser())//tarkistetaan että sähköposti on hyväksytty
                 {
+                    var emailformessage = newuser.Email;
                     db.Logins.Add(newuser);
                     db.SaveChanges();
-                    
+                    logger.LogInformation("Uusi käyttäjä {emailformessage}", emailformessage);
                     return Ok($"Lisättiin uusi Kayttaja {newuser.Email}");
                 }
-                else { return BadRequest(new { Message = "Tunnusta ei voi luoda tälle sähköpostiosoitteelle" }); }
+                else
+                {
+                    logger.LogInformation("Sähköposti ei sallittu");
+                    return BadRequest(new { Message = "Tunnusta ei voi luoda tälle sähköpostiosoitteelle" });
+                }
             }
             catch (Exception e)
             {
+                logger.LogError($"Virhe sisäänkirjautumisessa {DateTime.Now}");
                 return BadRequest("Tapahtui virhe. Lue lisää: " + e.InnerException);
             }
         }
     }
 }
+
