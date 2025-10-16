@@ -21,6 +21,8 @@ public partial class OpiskelijanKuvapankki2_0Context : DbContext
 
     public virtual DbSet<Login> Logins { get; set; }
 
+    public virtual DbSet<Organisation> Organisations { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=local");
 

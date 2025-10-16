@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using OpiskelijanKuvapankki2_0.Models;
 using Microsoft.EntityFrameworkCore;
-using static System.Net.WebRequestMethods;
+using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
+using SixLabors.ImageSharp;
+using static System.Net.WebRequestMethods;
 namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
@@ -30,7 +31,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
         [HttpGet]
         [AllowAnonymous]//salli kirjautumaton käyttäjä
-        public async Task<ActionResult<IEnumerable<Image>>> GetAllImages()
+        public async Task<ActionResult<IEnumerable<Models.Image>>> GetAllImages()
         {
 
             var images = await db.Images.Include(c => c.Category).ToListAsync();
@@ -53,7 +54,12 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
         [HttpPost("Upload")]
         [Consumes("multipart/form-data")] //ottaa vastaan lomakkeen
-        public async Task<ActionResult<Image>> AddNew([FromForm] int LoginId, [FromForm] int CategoryId, [FromForm] string ImageName, IFormFile ImageBytes)
+        public async Task<ActionResult<Models.Image>> AddNew
+            (
+            [FromForm] int LoginId,
+            [FromForm] CategoryType CategoryId,
+            [FromForm] string ImageName,
+            IFormFile ImageBytes)
         {
             var imageCount = db.Images.Count();
             List<string> allowedFileTypes = new List<string> { "image/jpeg", "image/png", "image/jpg", "image/webp" };
@@ -83,15 +89,15 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
                     var url = Url.Action("ReturnImage", "Images", new { ImageName }, Request.Scheme); //api end point joka palauttaa kuvan
 
+                    var getidbasedonname = await db.Images.FirstOrDefaultAsync(i => i.Category.CategoryName == form["CategoryId"].ToString());
 
 
-
-                    var newimage = new Image  //Muodostetaan kuvaolio
+                    var newimage = new Models.Image  //Muodostetaan kuvaolio
                     {
                         ImageName = form["ImageName"].ToString(),
                         ImageLink = url,
                         ImageBytes = binaryfile,
-                        CategoryId = int.Parse(form["CategoryId"].ToString()),
+                        CategoryId = getidbasedonname.CategoryId,
                         LoginId = int.Parse(form["LoginId"].ToString()),
 
                     };
@@ -102,6 +108,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
 
                     return Ok($"Lisättiin uusi kuva {newimage.ImageName}");
+                    
                 }
             }
             catch (Exception e)
