@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>OpiskelijanKuvapankki2_0</RootNamespace>
+    <UserSecretsId>5650be06-c4e9-480d-b6c9-d14bdce5226e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

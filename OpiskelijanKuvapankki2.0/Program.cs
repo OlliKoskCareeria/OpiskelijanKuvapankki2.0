@@ -6,6 +6,7 @@ using OpiskelijanKuvapankki2_0.Filters;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpiskelijanKuvapankki2_0.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -27,6 +28,10 @@ builder.Services.AddDbContext<OpiskelijanKuvapankki2_0Context>(options => option
 builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddScoped<UserService>();
+
+builder.Services.Configure<SendGridSettings>
+    (builder.Configuration.GetSection("SendGrid"));
+builder.Services.AddTransient<IEmailService,SendGridEmailService>();
 
 
 
