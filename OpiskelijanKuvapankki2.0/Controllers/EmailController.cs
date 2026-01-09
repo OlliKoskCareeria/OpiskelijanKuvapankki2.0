@@ -2,16 +2,16 @@
 using Microsoft.AspNetCore.Mvc;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Security.Cryptography;
-
+using Microsoft.AspNetCore.RateLimiting;
 namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TestEmailController : ControllerBase
+    public class EmailController : ControllerBase
     {
         private readonly IEmailService _emailService;
 
-        public TestEmailController(IEmailService emailService)
+        public EmailController(IEmailService emailService)
         {
             _emailService = emailService;
         }
@@ -23,6 +23,19 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             await _emailService.SendEmailAsync("olli.koski@opiskelijankuvapankki.fi", "Testi", html);
 
             return Ok("lähetys onnistui!");
+        }
+        [EnableRateLimiting("fixed")]
+        [HttpPost("testaa")]
+        public IActionResult Testaa([FromBody]string email)
+        {
+            return Ok("testiok");
+        }
+
+        [EnableRateLimiting("FixedForIp")]
+        [HttpPost("IpTesti")]
+        public IActionResult IpTesti([FromBody] string email)
+        {
+            return Ok("Iptestiok");
         }
     }
 }

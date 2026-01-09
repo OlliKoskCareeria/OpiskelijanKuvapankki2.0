@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Logging;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 
 namespace OpiskelijanKuvapankki2_0.Controllers
@@ -20,10 +22,31 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         public ActionResult AddNew([FromBody] Login newuser)
         {
 
-           string message = userservice.UserValidation(newuser);
+            string message = userservice.UserValidation(newuser);
 
-            return Ok(new {message});
+            return Ok(new { message });
+
+        }
+
+        [HttpPost("register")]
+        
+        public async Task<IActionResult> Register([FromBody]string email)
+        {
             
+            await userservice.SendVerifiCode(email);
+
+            return Ok(new { message = "Vahvistuskoodi lähetetty" });
+
+        }
+
+        [HttpPost("verify")]
+        public async Task<IActionResult> Verify([FromBody]EmailVerification cation)
+        {
+            var result = await userservice.VerifyCode(cation.Email, cation.Code);
+            if (result == false)
+                return BadRequest(new { message = "vahvistus epäonnistui" });
+            return Ok(new { message = "Vahvistus onnistui" });
+
         }
     }
 }

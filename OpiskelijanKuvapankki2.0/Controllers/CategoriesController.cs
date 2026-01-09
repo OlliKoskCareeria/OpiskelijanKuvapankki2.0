@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OpiskelijanKuvapankki2_0.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace OpiskelijanKuvapankki2_0.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController(OpiskelijanKuvapankki2_0Context _db) : ControllerBase
@@ -12,7 +14,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
 
         [HttpGet]
-        [AllowAnonymous]
+      
         public ActionResult GetAllCategories()
         {
             var categories = db.Categories.ToList();

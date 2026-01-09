@@ -1,12 +1,20 @@
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using OpiskelijanKuvapankki2_0.Models;
-using OpiskelijanKuvapankki2_0.Services;
-using OpiskelijanKuvapankki2_0.Filters;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using OpiskelijanKuvaPankki.Services;
+using OpiskelijanKuvapankki2_0.Filters;
+using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
+using System.Text;
+using System.Threading.RateLimiting;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -21,21 +29,78 @@ builder.Services.AddSwaggerGen(c =>
     c.SchemaFilter<EnumSchemaFilter>();
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("all",
+    builder => builder.AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
+});
+
 builder.Services.AddDbContext<OpiskelijanKuvapankki2_0Context>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("local")
     ));
+
+var appSettingsSection = builder.Configuration.GetSection("AppSettings");
+builder.Services.Configure<AppSettings>(appSettingsSection);
+
+var appSettings = appSettingsSection.Get<AppSettings>();
+var key = Encoding.ASCII.GetBytes(appSettings.Key);
+
+builder.Services.AddAuthentication(au =>
+{
+    au.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    au.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(jwt =>
+{
+    jwt.RequireHttpsMetadata = false;
+    jwt.SaveToken = true;
+    jwt.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+    };
+});
 
 builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddScoped<IAuthenticateService, AuthenticateService>();
+
 builder.Services.Configure<SendGridSettings>
     (builder.Configuration.GetSection("SendGrid"));
 builder.Services.AddTransient<IEmailService,SendGridEmailService>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("fixed", o =>
+    {
+        o.PermitLimit = 5;
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueLimit = 0;
+    });
+    options.AddPolicy("FixedForIp", HttpContent =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                HttpContent.Connection.RemoteIpAddress.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromSeconds(60),
+                    QueueLimit = 0
+                }));
+});
+
+
+
 
 
 var app = builder.Build();
+
+app.UseRateLimiter();
 
 
 
@@ -45,8 +110,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(); 
 }
+app.UseCors("all");
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

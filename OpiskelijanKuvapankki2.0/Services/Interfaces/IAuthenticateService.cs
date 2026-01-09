@@ -3,6 +3,6 @@ namespace OpiskelijanKuvapankki2_0.Services.Interfaces
 {
     public interface IAuthenticateService
     {
-        LoggedUser Authenticate(string KayttajaTunnus, string Ssana);
+        AuthResponse Authenticate(string KayttajaTunnus, string Ssana);
     }
 }
