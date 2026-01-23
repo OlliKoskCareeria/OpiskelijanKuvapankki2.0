@@ -27,6 +27,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SchemaFilter<EnumSchemaFilter>();
+    c.OperationFilter<RecaptchaHeaderParameter>();
+
+    //c.AddSecurityDefinition("RecaptchaToken", new OpenApiSecurityScheme
+    //{
+    //    Name = "X-Recaptcha-Token",
+    //    Type = SecuritySchemeType.ApiKey,
+    //    In = ParameterLocation.Header,
+    //    Description = "Google reCAPTCHA token"
+
 });
 
 builder.Services.AddCors(options =>
@@ -68,11 +77,13 @@ builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddHttpClient<IRecaptchaService, RecaptchaService>();
+
 builder.Services.AddScoped<IAuthenticateService, AuthenticateService>();
 
 builder.Services.Configure<SendGridSettings>
     (builder.Configuration.GetSection("SendGrid"));
-builder.Services.AddTransient<IEmailService,SendGridEmailService>();
+builder.Services.AddTransient<IEmailService,EmailService>();
 
 builder.Services.AddRateLimiter(options =>
 {
