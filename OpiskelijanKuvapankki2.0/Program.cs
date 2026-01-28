@@ -1,4 +1,5 @@
 
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -77,14 +78,26 @@ builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddScoped<UserService>();
 
+
+
 builder.Services.AddHttpClient<IRecaptchaService, RecaptchaService>();
 
 builder.Services.AddScoped<IAuthenticateService, AuthenticateService>();
 
-builder.Services.Configure<SendGridSettings>
-    (builder.Configuration.GetSection("SendGrid"));
-builder.Services.AddTransient<IEmailService,EmailService>();
-
+var emailProvider = "MailJet";
+    
+if (emailProvider == "SendGrid")
+{
+    builder.Services.Configure<SendGridSettings>
+        (builder.Configuration.GetSection("SendGrid"));
+    builder.Services.AddTransient<IEmailService, SendGridService>();
+}
+else if (emailProvider == "MailJet")
+{
+    builder.Services.Configure<MailJetSettings>
+         (builder.Configuration.GetSection("MailJet"));
+    builder.Services.AddTransient<IEmailService, MailJetService>();
+}
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -94,6 +107,7 @@ builder.Services.AddRateLimiter(options =>
         o.Window = TimeSpan.FromMinutes(1);
         o.QueueLimit = 0;
     });
+
     options.AddPolicy("FixedForIp", HttpContent =>
             RateLimitPartition.GetFixedWindowLimiter(
                 HttpContent.Connection.RemoteIpAddress.ToString() ?? "unknown",

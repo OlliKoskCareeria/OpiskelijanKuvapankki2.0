@@ -64,7 +64,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpPost("verify")]
         public async Task<IActionResult> Verify([FromBody]EmailVerification cation)
         {
-            var result = await userservice.VerifyCode(cation.Email, cation.Code);
+            var result = await userservice.VerifyCode(cation.LoginID, cation.Code);
             if (result == false)
                 return BadRequest(new { message = "vahvistus epäonnistui" });
             return Ok(new { message = "Vahvistus onnistui" });

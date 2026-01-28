@@ -14,4 +14,7 @@ public partial class Login
     public string? Contact { get; set; }
 
     public string Pword { get; set; } = null!;
+
+    public string Status { get; set; } = "PENDING";
+
 }

@@ -2,8 +2,12 @@
 {
     public class EmailVerification
     {
-        public string Email { get; set; }
+        public int VerifID { get; set; }
+        public int LoginID { get; set; }
         public string Code { get; set; }
         public DateTime TimeValid { get; set; }
+        public int Attempts { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? VerifiedAt { get; set; }
     }
 }

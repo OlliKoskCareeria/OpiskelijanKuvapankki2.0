@@ -19,8 +19,8 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpGet("send")]
         public async Task<IActionResult> SendTestEmail()
         {
-            var html = "<h1>Hello from SendGrid</h1><p>tämä on testi</p>";
-            await _emailService.SendEmailAsync("Email here", "Testi", html);
+            var html = "<h1>Hello world</h1><p>Hello world</p>";
+            await _emailService.SendEmailAsync("ollikoski84@gmail.com", "Testi", html);
 
             return Ok("lähetys onnistui!");
         }

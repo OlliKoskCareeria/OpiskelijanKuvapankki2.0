@@ -6,11 +6,11 @@ using OpiskelijanKuvapankki2_0.Models;
 
 namespace OpiskelijanKuvapankki2_0.Services
 {
-    public class EmailService : IEmailService
+    public class SendGridService : IEmailService
     {
         private readonly SendGridSettings _settings;
 
-        public EmailService(IOptions<SendGridSettings> settings)
+        public SendGridService(IOptions<SendGridSettings> settings)
         {
             _settings = settings.Value;
         }
