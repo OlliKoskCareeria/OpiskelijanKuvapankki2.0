@@ -1,9 +1,12 @@
-﻿namespace OpiskelijanKuvapankki2_0.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OpiskelijanKuvapankki2_0.Models
 {
     public class EmailVerification
     {
-        public int VerifID { get; set; }
+        [Key]
         public int LoginID { get; set; }
+        [Required]
         public string Code { get; set; }
         public DateTime TimeValid { get; set; }
         public int Attempts { get; set; }

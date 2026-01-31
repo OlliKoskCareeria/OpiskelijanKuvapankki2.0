@@ -23,26 +23,14 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] Credentials tunnukse)
         {
-            var loggedUser = _authenticateService.Authenticate(tunnukse.UserName, tunnukse.PassWord);
+            AuthResponse loggedUser = _authenticateService.Authenticate(tunnukse.UserName, tunnukse.PassWord);
 
             if (loggedUser == null)
                 return BadRequest(new { message = "Käyttäjätunnus tai salasana on virheellinen" });
 
-            return Ok(loggedUser); // Palautus front endiin (sis. vain loggedUser luokan mukaiset kentät)
+            return Ok(loggedUser); // Palauttaa AuthResponse olion sis LoggedUser ja jwt Token
         }
-        //private readonly UserService userservice = _userservice;
-        //private readonly ILogger<AuthenticationController> logger = _logger;
-        //private readonly OpiskelijanKuvapankki2_0Context db = _db;
-
-        //[HttpPost("register")]
-        //public async Task<IActionResult> Register(RegisterRequest request)
-        //    => await userservice.RegisterAsync(request);
-
-
-        //[HttpPost("verify")]
-        //public async Task<IActionResult> VerifyEmailRequest request)
-        //    => await userservice.VerifyEmailAsync(request);
-
+        
 
     }
 }

@@ -20,7 +20,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         public async Task<IActionResult> SendTestEmail()
         {
             var html = "<h1>Hello world</h1><p>Hello world</p>";
-            await _emailService.SendEmailAsync("ollikoski84@gmail.com", "Testi", html);
+            await _emailService.SendEmailAsync("EmailHere", "Testing", html);
 
             return Ok("lähetys onnistui!");
         }

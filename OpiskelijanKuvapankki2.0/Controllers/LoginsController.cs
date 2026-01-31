@@ -46,27 +46,44 @@ namespace OpiskelijanKuvapankki2_0.Controllers
            
             string message = userservice.UserValidation(newuser);
 
+            Login verifuser = db.Logins.FirstOrDefault(c => c.LoginId == newuser.LoginId);
+
+            if(verifuser == null)
+            {
+                return Ok(new { message });
+            }
+
+            bool verifyok = await userservice.SendVerifiCode(verifuser);
+
+            if (verifyok != true)
+            {
+                return BadRequest("Sähköpostivahvistuksen lähetys epäonnistui :( yritä myöhemmin uudestaan");
+            }
+
             return Ok(new { message });
 
         }
 
-        [HttpPost("register")]
+        //[HttpPost("register")]
         
-        public async Task<IActionResult> Register([FromBody]string email)
-        {
-            
-            await userservice.SendVerifiCode(email);
+        //public async Task<IActionResult> Register([FromBody]int LoginId)
+        //{
+        //    Login login = db.Logins.FirstOrDefault(c => c.LoginId == LoginId);
 
-            return Ok(new { message = "Vahvistuskoodi lähetetty" });
+        //    await userservice.SendVerifiCode(login);
 
-        }
+        //    return Ok(new { message = "Vahvistuskoodi lähetetty" });
+
+        //}
 
         [HttpPost("verify")]
-        public async Task<IActionResult> Verify([FromBody]EmailVerification cation)
+        public async Task<IActionResult> Verify (int loginid, string code)
         {
-            var result = await userservice.VerifyCode(cation.LoginID, cation.Code);
-            if (result == false)
-                return BadRequest(new { message = "vahvistus epäonnistui" });
+            
+            var result = await userservice.VerifyCode(loginid,code);
+            if (result.Success == false)
+                return BadRequest(new { message = result.Message });
+
             return Ok(new { message = "Vahvistus onnistui" });
 
         }

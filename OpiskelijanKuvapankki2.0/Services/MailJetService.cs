@@ -21,10 +21,7 @@ namespace OpiskelijanKuvapankki2_0.Services
         
 
         
-        // To send an email
-        //MailMessage message = new MailMessage("from@example.com", "to@example.com", "Subject", "Body of the email");
-        //client.Send(message);
-
+        
         public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
         {
             SmtpClient client = new SmtpClient("in-v3.mailjet.com", 587)

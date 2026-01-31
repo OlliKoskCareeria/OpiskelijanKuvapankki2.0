@@ -59,6 +59,9 @@ public partial class OpiskelijanKuvapankki2_0Context : DbContext
             entity.Property(e => e.Email).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.Pword).HasMaxLength(50);
+            entity.Property(e => e.Status)
+              .HasDefaultValue("PENDING")
+              .IsRequired();
         });
 
         OnModelCreatingPartial(modelBuilder);
