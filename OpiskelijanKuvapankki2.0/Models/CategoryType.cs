@@ -7,20 +7,24 @@ namespace OpiskelijanKuvapankki2_0.Models
         
 
         
-        Ruoka = 100,
+        Ruoka = 106,
        
-        Maisema = 101,
+        Maisema = 103,
        
         Luonto = 102,
        
-        Eläimet = 104,
+        Eläimet = 101,
+
+        Esineet = 105,
         
-        Arkkitehtuuri = 105,
+        Arkkitehtuuri = 104,
        
-        Taide = 106,
+        Taide = 108,
         
-        Kasvit = 107,
+        Ihmiset = 110,
         
-        Sekalaiset = 110
+        Sekalaiset = 107,
+
+        TestiM = 113,
     }
 }

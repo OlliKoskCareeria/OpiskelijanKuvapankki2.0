@@ -26,12 +26,12 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         {
             if (configuration.GetValue<bool>("Recaptcha:Enabled"))
             {
-                if (!Request.Headers.TryGetValue("X-Recaptcha-Token", out var token))
+                if (!Request.Headers.TryGetValue("X-Recaptcha-Token", out var token)) 
                 {
                     return BadRequest(new { message = "Recaptcha token puuttuu." });
                 }
 
-                bool captchaValid = await recaptchaservice.VerifyAsync(
+                bool captchaValid = await recaptchaservice.VerifyAsync(   
                     token!,
                     expectedAction: "Add_New_User"
                     
@@ -87,6 +87,35 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             return Ok(new { message = "Vahvistus onnistui" });
 
         }
+
+        [HttpDelete("{id}")]
+        public ActionResult DeleteUserAndImages(int id)  //Poistaa käyttäjän ja siihen liitetyt kuvat
+        {
+            try
+            {
+
+                var login = db.Logins.Find(id);
+
+                if (login != null)
+                {
+                    var userimages = db.Images.Where(c => c.LoginId == login.LoginId);
+
+                        db.Images.RemoveRange(userimages);
+                    
+                        db.Logins.Remove(login);
+
+                        db.SaveChanges();
+                    return Ok(login.Email + " poistettiin.");
+                }
+
+                return NotFound("Käyttäjää" + " ei löytynyt.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.InnerException);
+            }
+        }
+
     }
 }
 

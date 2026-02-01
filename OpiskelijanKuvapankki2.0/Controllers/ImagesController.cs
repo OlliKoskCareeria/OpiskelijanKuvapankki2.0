@@ -57,7 +57,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         public async Task<ActionResult<Models.Image>> AddNew
             (
             [FromForm] int LoginId,
-            [FromForm] CategoryType CategoryId,
+            [FromForm] CategoryType CategoryId, //enum Swaggeria varten
             [FromForm] string ImageName,
             IFormFile ImageBytes)
         {
@@ -88,17 +88,18 @@ namespace OpiskelijanKuvapankki2_0.Controllers
                     var binaryfile = await imageservice.DowngradeImageAsync(memoryStream);//Palauttaa muokatun tiedoston
 
                     var url = Url.Action("ReturnImage", "Images", new { ImageName }, Request.Scheme); //api end point joka palauttaa kuvan
-
-                    var getidbasedonname = await db.Images.FirstOrDefaultAsync(i => i.Category.CategoryName == form["CategoryId"].ToString());
-
+                    var vaar = form["CategoryId"];
+                    var tyhja = "";
+                    var category = await db.Categories.FirstOrDefaultAsync(c => c.CategoryName.Equals(form["CategoryId"]));
+                    var categoryId = category?.CategoryId;
 
                     var newimage = new Models.Image  //Muodostetaan kuvaolio
                     {
-                        ImageName = form["ImageName"].ToString(),
+                        ImageName = form["ImageName"],
                         ImageLink = url,
                         ImageBytes = binaryfile,
-                        CategoryId = getidbasedonname.CategoryId,
-                        LoginId = int.Parse(form["LoginId"].ToString()),
+                        CategoryId = categoryId,
+                        LoginId = int.Parse(form["LoginId"]),
 
                     };
 
