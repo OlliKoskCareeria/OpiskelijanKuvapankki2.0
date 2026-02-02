@@ -116,6 +116,15 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             }
         }
 
+        [HttpDelete("{id}/assign-images")]
+        public async Task<ActionResult> DeleteUserSaveImages(int id)
+        {
+          var result = await userservice.DeleteUserAssignImages(id);
+
+            return Ok(result.Success + result.Message);
+
+        }
+
     }
 }
 
