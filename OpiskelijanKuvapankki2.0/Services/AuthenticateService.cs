@@ -35,13 +35,15 @@ namespace OpiskelijanKuvaPankki.Services
 
             var foundUser = db.Logins.SingleOrDefault(x => x.Email == email);
 
-            if (foundUser == null)
+            if (foundUser == null||foundUser.Status.Equals("PENDING"))
                 return null;
 
             var isValid = _userservice.VerifyPassword(foundUser.Pword, pword);
 
             if (!isValid)
                 return null;
+
+            
 
             // Jos käyttäjä löytyy:
             var tokenHandler = new JwtSecurityTokenHandler();

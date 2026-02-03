@@ -26,7 +26,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             AuthResponse loggedUser = _authenticateService.Authenticate(tunnukse.UserName, tunnukse.PassWord);
 
             if (loggedUser == null)
-                return BadRequest(new { message = "Käyttäjätunnus tai salasana on virheellinen" });
+                return BadRequest(new { message = "Sisäänkirjautuminen epäonnistui" });
 
             return Ok(loggedUser); // Palauttaa AuthResponse olion sis LoggedUser ja jwt Token
         }
