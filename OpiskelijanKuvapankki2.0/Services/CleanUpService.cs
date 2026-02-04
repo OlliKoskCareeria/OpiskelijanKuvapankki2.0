@@ -20,7 +20,7 @@ namespace OpiskelijanKuvapankki2_0.Services
             _logger.LogInformation("Vahvistamattomien käyttäjien siivousrutiini alkoi" + DateTime.Now.ToString());
            
 
-            var cutoff = DateTime.UtcNow.AddMinutes(-1);
+            var cutoff = DateTime.UtcNow.AddHours(24);
 
             var expiredIds = _db.EmailVerifications
                 .Where(c => c.CreatedAt < cutoff)
