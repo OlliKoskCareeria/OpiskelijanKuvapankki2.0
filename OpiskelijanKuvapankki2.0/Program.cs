@@ -78,7 +78,9 @@ builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddScoped<ICleanUpService, CleanUpService>();
 
+builder.Services.AddHostedService<BackGroundCleanUpService>();
 
 builder.Services.AddHttpClient<IRecaptchaService, RecaptchaService>();
 
