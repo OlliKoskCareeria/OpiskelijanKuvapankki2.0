@@ -133,7 +133,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             {
                 return NotFound();
             }
-            var FileName = image.ImageBytes + ".jpg" ?? "ladattu_kuva.jpg";
+            var FileName = image.ImageName + ".jpg" ?? "ladattu_kuva.jpg";
 
             return File(ByteFile, "application/octet-stream", FileName);//palautetaan tunnistamaton binääritiedosto. Tiedosto nimetään ja määritetään tiedostopäätteellä sen tyyppi
         }
