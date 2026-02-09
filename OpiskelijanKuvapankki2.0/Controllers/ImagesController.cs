@@ -109,13 +109,59 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
 
                     return Ok($"Lisättiin uusi kuva {newimage.ImageName}");
-                    
+
                 }
             }
             catch (Exception e)
             {
                 return BadRequest("Tapahtui virhe. Lue lisää: " + e.InnerException);
             }
+        }
+
+        [HttpGet("download/{id}")]
+        public async Task<IActionResult> LoadImage(int id)
+        {
+            var image = await db.Images.FindAsync(id);//etsii kuvaolion id perusteella
+            if (image == null)
+            {
+                return NotFound();
+            }
+
+            var ByteFile = image.ImageBytes;
+
+            if (ByteFile == null)
+            {
+                return NotFound();
+            }
+            var FileName = image.ImageBytes + ".jpg" ?? "ladattu_kuva.jpg";
+
+            return File(ByteFile, "application/octet-stream", FileName);//palautetaan tunnistamaton binääritiedosto. Tiedosto nimetään ja määritetään tiedostopäätteellä sen tyyppi
+        }
+
+        [HttpGet("downloadresized/{id}")]
+        public async Task<IActionResult> LoadResizedImage(int id, int height = 700, int quality = 80)
+        {
+            var image = await db.Images.FindAsync(id);//etsii kuvaolion id perusteella
+
+
+            if (image == null)
+            {
+                return NotFound();
+            }
+
+            var ByteFile = image.ImageBytes;
+
+            if (ByteFile == null)
+            {
+                return NotFound();
+            }
+
+            var ResizedFile = imageservice.SetSizeAndQualityImage(ByteFile, height, quality);//Käyttäjällä on mahdollisuus muuttaa kuvan kokoa ja laatua
+            var FileName = image.ImageName + ".jpg" ?? "ladattu_kuva.jpg";//fallbackin pitäisi olla turha koska upload vaatii nimeämään kuvan
+
+            return File(ResizedFile, "application/octet-stream", FileName);
+
+
         }
 
     }

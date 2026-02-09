@@ -20,7 +20,7 @@ namespace OpiskelijanKuvapankki2_0.Services
 
             var encoder = new JpegEncoder
             {
-                Quality = 50 //muutetaan kuvan laatu vakioituun muotoon
+                Quality = 80 //muutetaan kuvan laatu vakioituun muotoon
             };
 
             using var processedImageStream = new MemoryStream();
@@ -36,7 +36,7 @@ namespace OpiskelijanKuvapankki2_0.Services
                 image.Mutate(x => x.Resize(new ResizeOptions
                 { Size = new Size(1980, 1080) }));
 
-                var encoder = new JpegEncoder { Quality = 100 };//parannetaan kuvan laatua
+                var encoder = new JpegEncoder { Quality = 92 };//parannetaan kuvan laatua
 
                 using (var outputStream = new MemoryStream())
                 {
@@ -46,5 +46,33 @@ namespace OpiskelijanKuvapankki2_0.Services
             }
 
         }
+
+        public byte[] SetSizeAndQualityImage(byte[] imageAsBytes, int height, int quality)
+        {
+            if (imageAsBytes == null || imageAsBytes.Length == 0)
+                throw new ArgumentException("Kuvadataa ei löydy", nameof(imageAsBytes));
+
+            using var image = Image.Load(imageAsBytes) ;
+            image.Mutate(x => x.Resize(new ResizeOptions
+            { Size = new Size(0, height),
+            Mode = ResizeMode.Max
+        }));
+
+            quality = Math.Clamp(quality, 1, 92);
+
+            var encoder = new JpegEncoder
+            {
+                Quality = quality
+            };
+
+            using var outputStream = new MemoryStream();
+            
+                image.Save(outputStream, encoder);
+                return outputStream.ToArray();
+            
+
+        }
+
+
     }
 }
