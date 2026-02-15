@@ -1,4 +1,4 @@
-# OpiskelijanKuvapankki2.0
+
 # OpiskelijanKuvapankki2.0
 
 ## Overview
