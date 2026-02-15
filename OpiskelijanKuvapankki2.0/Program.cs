@@ -1,5 +1,6 @@
 
-
+using Serilog;
+using Serilog.Events;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +19,43 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
+
+
+Log.Logger = new LoggerConfiguration() //Määritellään lokikirjoituksen asetukset Vain ILoggerin tuottamat information ja error viestit lokiin tässä vaiheessa
+    .MinimumLevel.Information() 
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) 
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning) 
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "OpiskelijanKuvapankki")
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "Logs/app-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14,
+        restrictedToMinimumLevel: LogEventLevel.Information)
+    .CreateLogger();
+
+builder.Host.UseSerilog(Log.Logger);
+
+//Log.Logger = new LoggerConfiguration()
+//    .ReadFrom.Configuration(builder.Configuration)
+//    .Enrich.FromLogContext()
+//    .Enrich.WithProperty("Application", "OpiskelijanKuvapankki")
+//    .WriteTo.Console()
+//    .WriteTo.File(
+//        path: "Logs/app-.log",
+//        rollingInterval: RollingInterval.Day,
+//        retainedFileCountLimit: 14,
+//        restrictedToMinimumLevel: LogEventLevel.Information)
+//    .CreateLogger();
+
+//builder.Host.UseSerilog(Log.Logger);
+
+//builder.Logging.ClearProviders();
+//builder.Logging.AddConsole();
+//builder.Logging.AddDebug();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -129,6 +163,12 @@ var app = builder.Build();
 
 app.UseRateLimiter();
 
+//app.UseSerilogRequestLogging(options =>
+//{
+   
+//    options.MessageTemplate =
+//        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+//});
 
 
 // Configure the HTTP request pipeline.
@@ -146,5 +186,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.Lifetime.ApplicationStopped.Register(Log.CloseAndFlush);
 
 app.Run();
