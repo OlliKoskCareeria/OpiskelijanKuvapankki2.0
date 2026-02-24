@@ -1,6 +1,8 @@
 ﻿
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using OpiskelijanKuvapankki2_0.Controllers;
 using OpiskelijanKuvapankki2_0.Models;
@@ -222,6 +224,44 @@ namespace OpiskelijanKuvapankki2_0.Services
         }
 
         
+
+        public async Task<PasswordReset> ForgotPasswordSendCode(Login user)
+        {
+            var code = GenerateCode();
+            var hash = HashPassword(code);
+
+            var oldcode = await db.PasswordResets.FirstOrDefaultAsync(c => c.UserId == user.LoginId);
+            if (oldcode != null)//Poistaa mahdolliset vanhat PasswordReset oliot
+            {
+                db.PasswordResets.Remove(oldcode);
+                await db.SaveChangesAsync();
+            }
+
+            PasswordReset entity = new()
+            {
+
+                UserId = user.LoginId,
+                CodeHash = hash,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                CreatedByIp = null
+
+            };
+
+            
+
+            var message = $"Palauta salasanasi. Tämä koodi on voimassa 15minuuttia:{code}";
+            try
+            {
+                await emailService.SendEmailAsync(user.Email,"palauta salasanasi", message);
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(message: ex.Message);
+                return entity;
+            }
+        }
 
         private readonly PasswordHasher<object> _hasher = new();
 

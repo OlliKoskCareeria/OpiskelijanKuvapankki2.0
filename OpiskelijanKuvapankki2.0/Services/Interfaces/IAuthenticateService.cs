@@ -1,8 +1,11 @@
-﻿using OpiskelijanKuvapankki2_0.Models;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using OpiskelijanKuvapankki2_0.Models;
 namespace OpiskelijanKuvapankki2_0.Services.Interfaces
 {
     public interface IAuthenticateService
     {
         AuthResponse Authenticate(string KayttajaTunnus, string Ssana);
+
+        Task<VerificationResult> ResetPasswordAsync(ResetPasswordRequest request);
     }
 }

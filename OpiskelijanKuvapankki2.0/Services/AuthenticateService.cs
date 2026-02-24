@@ -1,13 +1,15 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using OpiskelijanKuvapankki2_0.Services;
 
 
 namespace OpiskelijanKuvaPankki.Services
@@ -21,15 +23,24 @@ namespace OpiskelijanKuvaPankki.Services
         private readonly AppSettings _appSettings;
 
         private readonly UserService _userservice;
-        public AuthenticateService(IOptions<AppSettings> appSettings, OpiskelijanKuvapankki2_0Context okc, UserService userservice)
+
+        private readonly IEmailService _emailservice;
+        public AuthenticateService
+            (
+            IOptions<AppSettings> appSettings,
+            OpiskelijanKuvapankki2_0Context okc,
+            UserService userservice,
+            IEmailService emailservice
+            )
         {
             _appSettings = appSettings.Value;
             db = okc;
             _userservice = userservice;
+            _emailservice = emailservice;
         }
 
 
-        //
+        
         public AuthResponse Authenticate(string email, string pword)
         {
 
@@ -105,6 +116,75 @@ namespace OpiskelijanKuvaPankki.Services
 
 
             
+        }
+
+        public async Task<VerificationResult> ResetPasswordAsync(ResetPasswordRequest request)//lisää käsittely, jossa token poistetaan 5 yrityksen jälkeen ja rutiini joka päättää mitä tehdään jos sama sähköposti pyytää useita tokeneita
+        {
+            VerificationResult result = new();
+
+            var user = await db.Logins.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+            {
+                result.Message = "Virheellinen pyyntö";
+                result.Success = false;
+                return result; //Sähköposti osoitetta/Käyttäjää ei löydy
+            }
+
+            var reset = await db.PasswordResets.FirstOrDefaultAsync(c => c.UserId == user.LoginId);
+
+            if (reset == null)
+            {
+                result.Message = "Virheellinen pyyntö";
+                result.Success = false;
+                return result; // Koodia/PasswordResets objektia ei löydy
+            }
+
+            if (reset.ExpiresAt < DateTime.UtcNow)
+            {
+                result.Message = "Virheellinen pyyntö";
+                result.Success = false;
+                db.PasswordResets.Remove(reset);
+                db.SaveChanges();
+                return result;//Koodi on vanhentunut
+            }
+
+
+            if (reset.FailedAttempts >= 5)
+            {
+                result.Message = "Virheellinen pyyntö";
+                result.Success = false;
+                db.PasswordResets.Remove(reset);
+                db.SaveChanges();
+                return result;//Liian monta yritystä
+            }
+
+            var incomingHash = (request.ResetCode);
+
+
+            var valid =  _userservice.VerifyPassword(reset.CodeHash, incomingHash);
+
+
+            if (!valid)
+            {
+                reset.FailedAttempts++;
+                db.PasswordResets.Update(reset);
+                result.Message = "Virheellinen pyyntö";
+                result.Success = false;
+                db.SaveChanges();
+                return result;//Väärä Koodi
+            }
+
+            
+            //validi koodi ja käyttäjä
+            user.Pword = _userservice.HashPassword(request.NewPassword);
+            db.Update(user);
+            db.PasswordResets.Remove(reset);
+            
+            await db.SaveChangesAsync();
+            await _emailservice.SendEmailAsync(user.Email, "Salasanasi on vaihdettu", "Salasanasi vaihdettiin, jos tämä et ollut sinä ota yhteyttä tukipalveluumme");
+            result.Message = "reset Ok";
+            result.Success = true;
+            return result;
         }
 
     }

@@ -24,6 +24,8 @@ public partial class OpiskelijanKuvapankki2_0Context : DbContext
     public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
     public virtual DbSet<Organisation> Organisations { get; set; }
 
+    public virtual DbSet<PasswordReset> PasswordResets { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=local");
 
@@ -63,6 +65,38 @@ public partial class OpiskelijanKuvapankki2_0Context : DbContext
               .HasDefaultValue("PENDING")
               .IsRequired();
         });
+
+        modelBuilder.Entity<PasswordReset>(entity =>
+        {
+            entity.ToTable("PasswordResets");
+
+            entity.HasKey(e => e.Id);
+
+            // Guid luodaan tietokannassa
+            entity.Property(e => e.Id)
+                  .HasDefaultValueSql("NEWID()")
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.CodeHash)
+                  .HasMaxLength(250)
+                  .IsRequired();
+
+            entity.Property(e => e.CreatedByIp)
+                  .HasMaxLength(45);
+
+            entity.Property(e => e.FailedAttempts)
+                  .HasDefaultValue(0);
+
+            entity.Property(e => e.CreatedAt)
+                  .IsRequired();
+
+            entity.Property(e => e.ExpiresAt)
+                  .IsRequired();
+
+            
+        });
+    
+
 
         OnModelCreatingPartial(modelBuilder);
     }

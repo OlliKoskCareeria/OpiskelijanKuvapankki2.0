@@ -20,7 +20,7 @@ namespace OpiskelijanKuvapankki2_0.Services
             {
                 using var scope = _scopeFactory.CreateScope();
                 var cleaner = scope.ServiceProvider.GetRequiredService<ICleanUpService>();
-                await cleaner.UserCleanUpRoutine();
+                await cleaner.DailyCleanUpRoutine();
                 await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
         }

@@ -15,29 +15,64 @@ namespace OpiskelijanKuvapankki2_0.Services
             _logger = logger;
         }
 
-            public async Task UserCleanUpRoutine()
+            public async Task DailyCleanUpRoutine()
         {
-            _logger.LogInformation("Vahvistamattomien käyttäjien siivousrutiini alkoi" + DateTime.Now.ToString());
-           
+            _logger.LogInformation("Päivittäinen siivousrutiini alkoi" + DateTime.Now.ToString());
+          
+            await UserCleanUpRoutine();
+            await ExpiredResetsCleanUpRoutine();
 
-            var cutoff = DateTime.UtcNow.AddHours(24);
+            _logger.LogInformation("Päivittäinen siivousrutiini loppui" + DateTime.Now.ToString());
+        }
 
-            var expiredIds = _db.EmailVerifications
-                .Where(c => c.CreatedAt < cutoff)
-                .Select(c => c.LoginID)
-                .Distinct()
+        private async Task UserCleanUpRoutine()
+        {
+            try
+            {
+                var cutoff = DateTime.UtcNow.AddHours(-24);
+
+                var expiredIds = _db.EmailVerifications
+                    .Where(c => c.CreatedAt < cutoff)
+                    .Select(c => c.LoginID)
+                    .Distinct()
+                    .ToList();
+
+                var expiredLogins = _db.Logins
+                .Where(u => expiredIds.Contains(u.LoginId))
                 .ToList();
 
-            var expiredLogins = _db.Logins
-            .Where(u => expiredIds.Contains(u.LoginId))
-            .ToList();
 
-
-            _db.Logins.RemoveRange(expiredLogins);
-        await _db.SaveChangesAsync();
-            
-            _logger.LogInformation("Vahvistamattomien käyttäjien siivousrutiini loppui" + DateTime.Now.ToString());
+                _db.Logins.RemoveRange(expiredLogins);
+                var deleted = await _db.SaveChangesAsync();
+                _logger.LogInformation("Poistettiin {count} vahvistamatonta käyttäjää.", deleted);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"Käyttäjien siivousrutiini ei siivonnut");
+            }
         }
-    
+
+        private async Task ExpiredResetsCleanUpRoutine()
+        {
+            try
+            {
+                var cutoff = DateTime.UtcNow.AddHours(-24);
+
+                var unvalidResets = _db.PasswordResets
+                    .Where(p => p.CreatedAt < cutoff)
+                    .ToList();
+
+                _db.PasswordResets.RemoveRange(unvalidResets);
+                var deleted = await _db.SaveChangesAsync();
+
+                _logger.LogInformation("Poistettiin {count} ei validia salasanan resetointi objektia.", deleted);
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex,"ExpiredResets siivourutiini ei siivonnut " + DateTime.Now.ToString());
+            }
+        }
+
     }
 }
