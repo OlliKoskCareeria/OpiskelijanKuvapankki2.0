@@ -137,22 +137,54 @@ else if (emailProvider == "MailJet")
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, token) =>
+    {
+        var httpContext = context.HttpContext;
+
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString();
+        var endpoint = httpContext.Request.Path;
+
+        var logger = httpContext.RequestServices
+            .GetRequiredService<ILogger<Program>>();
+
+        logger.LogWarning(
+            "Rate limit ylitetty. IP: {IP}, Endpoint: {Endpoint}",
+            ip,
+            endpoint
+        );
+
+        httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+        await httpContext.Response.WriteAsync("Too many requests", token);
+    };
+
     options.AddFixedWindowLimiter("fixed", o =>
     {
-        o.PermitLimit = 5;
+        o.PermitLimit = 20;
         o.Window = TimeSpan.FromMinutes(1);
         o.QueueLimit = 0;
     });
 
     options.AddPolicy("FixedForIp", HttpContent =>
             RateLimitPartition.GetFixedWindowLimiter(
-                HttpContent.Connection.RemoteIpAddress.ToString() ?? "unknown",
+                HttpContent.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 10,
                     Window = TimeSpan.FromSeconds(60),
                     QueueLimit = 0
                 }));
+
+    options.AddPolicy("ResetPasswordPolicy", context =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(5),
+            QueueLimit = 0
+        }));
 });
 
 

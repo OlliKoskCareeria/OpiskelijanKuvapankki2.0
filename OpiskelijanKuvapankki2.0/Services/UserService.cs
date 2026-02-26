@@ -225,17 +225,29 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         
 
-        public async Task<PasswordReset> ForgotPasswordSendCode(Login user)
+        public async Task<PasswordReset?> ForgotPasswordSendCode(Login user)
         {
-            var code = GenerateCode();
-            var hash = HashPassword(code);
+            var now = DateTime.UtcNow;
+
+            
 
             var oldcode = await db.PasswordResets.FirstOrDefaultAsync(c => c.UserId == user.LoginId);
-            if (oldcode != null)//Poistaa mahdolliset vanhat PasswordReset oliot
+
+            if (oldcode != null && oldcode.ExpiresAt > now)
+            {
+                logger.LogInformation("Käyttäjällä on aktiivinen PasswordReset objekti {UserId}", user.LoginId);
+
+                return null; // Voimassa oleva koodi löytyy uutta ei luoda
+            }
+
+            if (oldcode != null)//Poistaa vanhentuneen PasswordReset olion mikäli sellainen löytyy
             {
                 db.PasswordResets.Remove(oldcode);
                 await db.SaveChangesAsync();
             }
+
+            var code = GenerateCode();
+            var hash = HashPassword(code);
 
             PasswordReset entity = new()
             {
@@ -258,8 +270,8 @@ namespace OpiskelijanKuvapankki2_0.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(message: ex.Message);
-                return entity;
+                logger.LogError(ex, "Failed to send password reset email for user {UserId}", user.LoginId);
+                return null;
             }
         }
 

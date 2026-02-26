@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
@@ -38,6 +39,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         }
 
         // Front endin kirjautumisyritys
+        [EnableRateLimiting("fixed")]
         [HttpPost]
         public ActionResult Post([FromBody] Credentials tunnukse)
         {
@@ -48,31 +50,28 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
             return Ok(loggedUser); // Palauttaa AuthResponse olion sis LoggedUser ja jwt Token
         }
-
+        [EnableRateLimiting("FixedForIp")]
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
         {
             
-
             var user =  _db.Logins.FirstOrDefault(u => u.Email == request.Email);
 
             if (user != null)
             {
-                
-                PasswordReset entity = await _userService.ForgotPasswordSendCode(user);
-                entity.CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                PasswordReset? entity = await _userService.ForgotPasswordSendCode(user);
 
-
-
-                await _db.PasswordResets.AddAsync(entity);
-                await _db.SaveChangesAsync();
-
-                
+                if (entity != null)
+                {
+                    entity.CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    await _db.PasswordResets.AddAsync(entity);
+                    await _db.SaveChangesAsync();
+                }
             }
 
             return Ok(new { message = "Jos sähköposti löytyy. Ohjeet lähetetty." });
         }
-
+        [EnableRateLimiting("ResetPasswordPolicy")]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
         {
