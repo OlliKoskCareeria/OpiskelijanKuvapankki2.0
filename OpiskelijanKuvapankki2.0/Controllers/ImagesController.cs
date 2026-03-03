@@ -10,10 +10,11 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ImagesController(OpiskelijanKuvapankki2_0Context _db, ImageService _imageservice) : ControllerBase
+    public class ImagesController(OpiskelijanKuvapankki2_0Context _db, ImageSharpService _imagesharpservice, ImageService _imageService) : ControllerBase
     {
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
-        private readonly ImageService imageservice = _imageservice;
+        private readonly ImageSharpService imagesharpservice = _imagesharpservice;
+        private readonly ImageService imageservice = _imageService;
 
 
         [HttpGet("/kuva/{imagename}")]
@@ -27,6 +28,19 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             }
 
             return File(image.ImageBytes, "image/jpeg", $"{image.ImageName}.jpeg");
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteImage(int id)
+        {
+            var result = imageservice.DeleteImage(id);
+            if (!result.Success)
+            {
+                return result.Message.Contains("ei löytynyt")
+                    ? NotFound(result.Message)
+                    : BadRequest(result.Message);
+            }
+            return Ok(result);
         }
 
         [HttpGet]
@@ -85,7 +99,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
                 {
                     await file.CopyToAsync(memoryStream); //kopioidaan tiedoston sisältö
                     memoryStream.Seek(0, SeekOrigin.Begin); //palautetaan streami alkuun
-                    var binaryfile = await imageservice.DowngradeImageAsync(memoryStream);//Palauttaa muokatun tiedoston
+                    var binaryfile = await imagesharpservice.DowngradeImageAsync(memoryStream);//Palauttaa muokatun tiedoston
 
                     var url = Url.Action("ReturnImage", "Images", new { ImageName }, Request.Scheme); //api end point joka palauttaa kuvan
                     var vaar = form["CategoryId"];
@@ -156,7 +170,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
                 return NotFound();
             }
 
-            var ResizedFile = imageservice.SetSizeAndQualityImage(ByteFile, height, quality);//Käyttäjällä on mahdollisuus muuttaa kuvan kokoa ja laatua
+            var ResizedFile = imagesharpservice.SetSizeAndQualityImage(ByteFile, height, quality);//Käyttäjällä on mahdollisuus muuttaa kuvan kokoa ja laatua
             var FileName = image.ImageName + ".jpg" ?? "ladattu_kuva.jpg";//fallbackin pitäisi olla turha koska upload vaatii nimeämään kuvan
 
             return File(ResizedFile, "application/octet-stream", FileName);

@@ -1,78 +1,41 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using OpiskelijanKuvapankki2_0.Models;
+
 
 namespace OpiskelijanKuvapankki2_0.Services
 {
-    public class ImageService
+    public class ImageService(OpiskelijanKuvapankki2_0Context _db, ILogger<ImageService> _logger)
     {
-        public async Task<byte[]> DowngradeImageAsync(Stream imageStream)
+        private readonly OpiskelijanKuvapankki2_0Context db = _db;
+        private readonly ILogger<ImageService> logger = _logger;
+        public VerificationResult DeleteImage(int id)
         {
-            using var image = await Image.LoadAsync(imageStream);
-
-            image.Mutate(x => x.Resize(new ResizeOptions
+            VerificationResult result = new();
+            try
             {
-                Size = new Size(700, 700),//muutetaan kuvan koko vakioituun muotoon
-                Mode = ResizeMode.Max //Pidetään kuvasuhteet ennallaan
-            }));
-
-            var encoder = new JpegEncoder
-            {
-                Quality = 80 //muutetaan kuvan laatu vakioituun muotoon
-            };
-
-            using var processedImageStream = new MemoryStream();
-            await image.SaveAsJpegAsync(processedImageStream, encoder);//tallennetaan jpeg muodossa
-
-            return processedImageStream.ToArray();
-        }
-
-        public byte[] UpGradeImage(byte[] imageAsBytes)
-        {
-            using (var image = Image.Load(imageAsBytes))
-            {
-                image.Mutate(x => x.Resize(new ResizeOptions
-                { Size = new Size(1980, 1080) }));
-
-                var encoder = new JpegEncoder { Quality = 92 };//parannetaan kuvan laatua
-
-                using (var outputStream = new MemoryStream())
+                var img = db.Images.Find(id);
+                if (img == null)
                 {
-                    image.Save(outputStream, encoder);
-                    return outputStream.ToArray();
+                    result.Success = false;
+                    result.Message = "Kuvaa ei löytynyt.";
+                    return result;
                 }
+
+                db.Images.Remove(img);
+                db.SaveChanges();
+
+                result.Success = true;
+                result.Message = $"{img.ImageName} poistettiin.";
+                return result;
             }
-
-        }
-
-        public byte[] SetSizeAndQualityImage(byte[] imageAsBytes, int height, int quality)
-        {
-            if (imageAsBytes == null || imageAsBytes.Length == 0)
-                throw new ArgumentException("Kuvadataa ei löydy", nameof(imageAsBytes));
-
-            using var image = Image.Load(imageAsBytes) ;
-            image.Mutate(x => x.Resize(new ResizeOptions
-            { Size = new Size(0, height),
-            Mode = ResizeMode.Max
-        }));
-
-            quality = Math.Clamp(quality, 1, 92);
-
-            var encoder = new JpegEncoder
+            catch (Exception ex)
             {
-                Quality = quality
-            };
-
-            using var outputStream = new MemoryStream();
-            
-                image.Save(outputStream, encoder);
-                return outputStream.ToArray();
-            
-
+                result.Success = false;
+                result.Message = "Poisto epäonnistui.";
+                logger.LogError(ex, "Kuvan poistaminen epäonnistui Id {ImageId}", id);
+                return result;
+            }
         }
-
-
     }
 }

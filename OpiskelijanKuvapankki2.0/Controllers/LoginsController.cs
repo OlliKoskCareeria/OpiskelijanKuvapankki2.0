@@ -64,17 +64,6 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
         }
 
-        //[HttpPost("register")]
-        
-        //public async Task<IActionResult> Register([FromBody]int LoginId)
-        //{
-        //    Login login = db.Logins.FirstOrDefault(c => c.LoginId == LoginId);
-
-        //    await userservice.SendVerifiCode(login);
-
-        //    return Ok(new { message = "Vahvistuskoodi lähetetty" });
-
-        //}
 
         [HttpPost("verify")]
         public async Task<IActionResult> Verify (int loginid, string code)

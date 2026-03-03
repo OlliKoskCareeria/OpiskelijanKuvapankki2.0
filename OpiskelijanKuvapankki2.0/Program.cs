@@ -108,6 +108,8 @@ builder.Services.AddAuthentication(au =>
     };
 });
 
+builder.Services.AddScoped<ImageSharpService>();
+
 builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddScoped<UserService>();
