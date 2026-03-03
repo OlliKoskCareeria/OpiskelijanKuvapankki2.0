@@ -47,21 +47,8 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [AllowAnonymous]//salli kirjautumaton käyttäjä
         public async Task<ActionResult<IEnumerable<Models.Image>>> GetAllImages()
         {
+            var imageDetails = await imageservice.GetAllImagesAsync();
 
-            var images = await db.Images.Include(c => c.Category).ToListAsync();
-
-            var logins = await db.Logins.ToListAsync();
-
-
-            var imageDetails = images.Select(image => new ImageDetails //Luodaan kuvadetails olio
-            {
-                ImageId = image.ImageId,
-                ImageName = image.ImageName,
-                Category = image.Category?.CategoryName,
-                Photographer = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Name,
-                Contact = logins.FirstOrDefault(l => l.LoginId == image.LoginId)?.Contact,
-                ImageLink = image.ImageLink
-            }).ToList();
             return Ok(imageDetails);
         }
 

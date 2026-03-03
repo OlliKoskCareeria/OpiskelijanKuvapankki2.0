@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OpiskelijanKuvapankki2_0.Models;
 
 
@@ -36,6 +37,25 @@ namespace OpiskelijanKuvapankki2_0.Services
                 logger.LogError(ex, "Kuvan poistaminen epäonnistui Id {ImageId}", id);
                 return result;
             }
+        }
+
+        public async Task<List<ImageDetails>> GetAllImagesAsync()
+        {
+            var images = await db.Images.Include(c => c.Category).ToListAsync();
+
+            var logins = await db.Logins.ToListAsync();
+
+            var imageDetails = images.Select(image => new ImageDetails //Luodaan kuvadetails olio
+            {
+                ImageId = image.ImageId,
+                ImageName = image.ImageName,
+                Category = image.Category?.CategoryName,
+                Photographer = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Name,
+                Contact = logins.FirstOrDefault(l => l.LoginId == image.LoginId)?.Contact,
+                ImageLink = image.ImageLink
+            }).ToList();
+
+            return imageDetails;
         }
     }
 }
