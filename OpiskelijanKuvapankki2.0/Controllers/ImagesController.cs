@@ -103,25 +103,17 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpGet("downloadresized/{id}")]
         public async Task<IActionResult> LoadResizedImage(int id, int height = 700, int quality = 80)
         {
-            var image = await db.Images.FindAsync(id);
+            var result = await imageservice.LoadImageAsync(id);
 
-
-            if (image == null)
+            if (result.Image == null)
             {
                 return NotFound();
             }
 
-            var ByteFile = image.ImageBytes;
 
-            if (ByteFile == null)
-            {
-                return NotFound();
-            }
-
-            var ResizedFile = imagesharpservice.SetSizeAndQualityImage(ByteFile, height, quality);//Käyttäjällä on mahdollisuus muuttaa kuvan kokoa ja laatua
-            var FileName = image.ImageName + ".jpg" ?? "ladattu_kuva.jpg";//fallbackin pitäisi olla turha koska upload vaatii nimeämään kuvan
-
-            return File(ResizedFile, "application/octet-stream", FileName);
+            var ResizedFile = imagesharpservice.SetSizeAndQualityImage(result.Image, height, quality);//Käyttäjällä on mahdollisuus muuttaa kuvan kokoa ja laatua
+            
+            return File(ResizedFile, "application/octet-stream", result.Message);
 
 
         }
