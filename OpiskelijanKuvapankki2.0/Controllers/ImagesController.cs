@@ -91,27 +91,19 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpGet("download/{id}")]
         public async Task<IActionResult> LoadImage(int id)
         {
-            var image = await db.Images.FindAsync(id);//etsii kuvaolion id perusteella
-            if (image == null)
+            var response = await imageservice.LoadImageAsync(id);
+            if (response.Image == null)
             {
                 return NotFound();
             }
 
-            var ByteFile = image.ImageBytes;
-
-            if (ByteFile == null)
-            {
-                return NotFound();
-            }
-            var FileName = image.ImageName + ".jpg" ?? "ladattu_kuva.jpg";
-
-            return File(ByteFile, "application/octet-stream", FileName);//palautetaan tunnistamaton binääritiedosto. Tiedosto nimetään ja määritetään tiedostopäätteellä sen tyyppi
+            return File(response.Image, "application/octet-stream", response.Message);//palautetaan tunnistamaton binääritiedosto. Tiedosto nimetään ja määritetään tiedostopäätteellä sen tyyppi
         }
 
         [HttpGet("downloadresized/{id}")]
         public async Task<IActionResult> LoadResizedImage(int id, int height = 700, int quality = 80)
         {
-            var image = await db.Images.FindAsync(id);//etsii kuvaolion id perusteella
+            var image = await db.Images.FindAsync(id);
 
 
             if (image == null)

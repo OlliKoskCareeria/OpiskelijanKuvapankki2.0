@@ -65,6 +65,26 @@ namespace OpiskelijanKuvapankki2_0.Services
             return await _db.Images.FirstOrDefaultAsync(i => i.ImageId == id);
         }
 
+        public async Task<(string Message, Byte[] ?Image)> LoadImageAsync(int id)
+        {
+            var image = await db.Images.FindAsync(id);//etsii kuvaolion id perusteella
+
+            if (image == null)
+            {   
+                return("NotFound", null);
+            }
+
+            var ByteFile = image.ImageBytes;
+
+            if (ByteFile == null)
+            {
+                return("NotFound", null);
+            }
+            var FileName = image.ImageName + ".jpg" ?? "ladattu_kuva.jpg";
+
+            return (FileName, ByteFile);
+        }
+
         public async Task<(bool Success, string Message, Image ?Image)> AddNewImageAsync(
         int loginId,
         string categoryName,
