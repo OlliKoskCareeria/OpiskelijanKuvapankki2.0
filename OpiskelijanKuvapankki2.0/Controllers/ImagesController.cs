@@ -30,6 +30,19 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             return File(image.ImageBytes, "image/jpeg", $"{image.ImageName}.jpeg");
         }
 
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<Models.Image>> GetImageById(int id)
+        {
+            var image = await imageservice.GetImageByIdAsync(id);
+            if (image == null)
+            {
+                return NotFound();
+            }
+
+            return image;
+        }
+
         [HttpDelete("{id}")]
         public IActionResult DeleteImage(int id)
         {
@@ -54,70 +67,26 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
 
         [HttpPost("Upload")]
-        [Consumes("multipart/form-data")] //ottaa vastaan lomakkeen
+        [Consumes("multipart/form-data")] 
         public async Task<ActionResult<Models.Image>> AddNew
             (
-            [FromForm] int LoginId,
-            [FromForm] CategoryType CategoryId, //enum Swaggeria varten
-            [FromForm] string ImageName,
-            IFormFile ImageBytes)
+        [FromForm] int LoginId,
+        [FromForm] string CategoryName,
+        [FromForm] string ImageName,
+        IFormFile ImageBytes
+            )
         {
-            var imageCount = db.Images.Count();
-            List<string> allowedFileTypes = new List<string> { "image/jpeg", "image/png", "image/jpg", "image/webp" };
-            var form = await Request.ReadFormAsync(); //tallennetaan lomake muuttujaan
-            var file = ImageBytes; //tallennetaan tiedosto muuttujaan
+            var form = await Request.ReadFormAsync();
+            var result = await _imageService.AddNewImageAsync(LoginId, form["CategoryName"], form["ImageName"], ImageBytes);
 
-            try
+            if (!result.Success)
             {
-                if (file == null || file.Length == 0)
-                {
-                    return BadRequest("Tiedostoa ei löytynyt");
-                }
-                if (!allowedFileTypes.Contains(file.ContentType))
-                {
-                    return BadRequest(new { Message = "Tätä tiedostoa ei voida tallentaa. Sallitut tiedostomuodot ovat jpg,jpeg,png,webp" });
-                }
-                if (imageCount > 1000)
-                {
-                    return BadRequest(new { Message = "Kuvapankin enimmäiskoko on ylitetty eikä kuvaa voitu ladata palveluun." });
-                }
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    await file.CopyToAsync(memoryStream); //kopioidaan tiedoston sisältö
-                    memoryStream.Seek(0, SeekOrigin.Begin); //palautetaan streami alkuun
-                    var binaryfile = await imagesharpservice.DowngradeImageAsync(memoryStream);//Palauttaa muokatun tiedoston
-
-                    var url = Url.Action("ReturnImage", "Images", new { ImageName }, Request.Scheme); //api end point joka palauttaa kuvan
-                    var vaar = form["CategoryId"];
-                    var tyhja = "";
-                    var category = await db.Categories.FirstOrDefaultAsync(c => c.CategoryName.Equals(form["CategoryId"]));
-                    var categoryId = category?.CategoryId;
-
-                    var newimage = new Models.Image  //Muodostetaan kuvaolio
-                    {
-                        ImageName = form["ImageName"],
-                        ImageLink = url,
-                        ImageBytes = binaryfile,
-                        CategoryId = categoryId,
-                        LoginId = int.Parse(form["LoginId"]),
-
-                    };
-
-                    db.Images.Add(newimage);
-                    await db.SaveChangesAsync();
-
-
-
-                    return Ok($"Lisättiin uusi kuva {newimage.ImageName}");
-
-                }
+                return BadRequest(result.Message);
             }
-            catch (Exception e)
-            {
-                return BadRequest("Tapahtui virhe. Lue lisää: " + e.InnerException);
-            }
+
+            return Ok(result.Message);
         }
+
 
         [HttpGet("download/{id}")]
         public async Task<IActionResult> LoadImage(int id)

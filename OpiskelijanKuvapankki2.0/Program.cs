@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpiskelijanKuvaPankki.Services;
-using OpiskelijanKuvapankki2_0.Filters;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
@@ -61,7 +60,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SchemaFilter<EnumSchemaFilter>();
+    
     c.OperationFilter<RecaptchaHeaderParameter>();
 
     //c.AddSecurityDefinition("RecaptchaToken", new OpenApiSecurityScheme
