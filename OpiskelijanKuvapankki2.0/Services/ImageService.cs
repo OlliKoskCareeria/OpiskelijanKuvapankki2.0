@@ -60,6 +60,66 @@ namespace OpiskelijanKuvapankki2_0.Services
             return imageDetails;
         }
 
+        public async Task<List<ImageDetails>?> GetImagesByCategoryAsync(string cname)
+        {
+            var logins = db.Logins.ToList();
+            var images = db.Images.Include(p => p.Category);//lista kuvista
+
+            if (images.Count() == 0)
+            {
+                return null; 
+            }
+            var categorysimages = images.Where(c => c.Category.CategoryName.Equals(cname)).ToList();//lista tietyn kategorian kuvista
+
+            if (categorysimages == null) 
+            {
+                return null;
+            }
+
+            var imagedetails = categorysimages.Select(image => new ImageDetails //Luodaan kuvadetails luokan mukainen olio, joka palauttaa FrontEndiä varten muokatun datan.
+            {
+                ImageId = image.ImageId,
+                ImageName = image.ImageName,
+                Category = image.Category?.CategoryName,
+                Photographer = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Name,
+                Contact = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Contact,
+                ImageLink = image.ImageLink
+            }).ToList();
+
+
+            return imagedetails;
+        }
+
+        public async Task<List<ImageDetails>?> GetImagesByUserAsync(string email)
+        {
+            var user = await db.Logins.FirstOrDefaultAsync(x => x.Email == email); //Etsitään käyttäjä sähköpostin(unique määritys tietokannassa)perusteella
+            
+            if (user == null)
+            { 
+                return null; 
+            }
+
+            var images = await db.Images.Include(p => p.Category).ToListAsync();//lista kuvista
+            var ownimages = images.Where(c => c.LoginId == user.LoginId).ToList();//lista kuvista käyttäjän perusteella
+
+            if (images == null)
+            {
+                return null;
+            }
+
+            var imagedetails = ownimages.Select(image => new ImageDetails //Luodaan kuvadetails luokan mukainen olio, joka palauttaa FrontEndiä varten muokatun datan.
+            {
+                ImageId = image.ImageId,
+                ImageName = image.ImageName,
+                Category = image.Category?.CategoryName,
+                Photographer = user.Name,
+                Contact = user.Contact,
+                ImageLink = image.ImageLink
+            }).ToList();
+
+            return(imagedetails);
+        }
+
         public async Task<Image?> GetImageByIdAsync(int id)
         {
             return await _db.Images.FirstOrDefaultAsync(i => i.ImageId == id);
@@ -120,8 +180,8 @@ namespace OpiskelijanKuvapankki2_0.Services
 
                     var newImage = new Image
                     {
-                        ImageName = imageName,
-                        ImageLink = $"api/Images/ReturnImage?ImageName={imageName}",
+                        ImageName = imageName.Trim().ToLower(),
+                        ImageLink = $"/kuva/{imageName}",
                         ImageBytes = binaryFile,
                         CategoryId = categoryId,
                         LoginId = loginId,

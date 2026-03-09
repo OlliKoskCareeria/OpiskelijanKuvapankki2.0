@@ -57,7 +57,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]//salli kirjautumaton käyttäjä
+        
         public async Task<ActionResult<IEnumerable<Models.Image>>> GetAllImages()
         {
             var imageDetails = await imageservice.GetAllImagesAsync();
@@ -116,6 +116,39 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             return File(ResizedFile, "application/octet-stream", result.Message);
 
 
+        }
+
+        [HttpGet("CategoryName/{cname}")]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetImagesByCategory(string cname)
+        {
+
+            try
+            {
+                var imagesbycategory = await imageservice.GetImagesByCategoryAsync(cname);
+                return Ok(imagesbycategory);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("Email/{email}")]
+        
+        public async Task<ActionResult> GetImagesByUser(string email)
+        {
+
+               var imagedetails = await imageservice.GetImagesByUserAsync(email);
+
+                if (imagedetails == null) 
+                { 
+                    return NotFound();
+                }
+
+                return Ok(imagedetails);
+            
+            
         }
 
     }
