@@ -10,9 +10,9 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ImagesController(OpiskelijanKuvapankki2_0Context _db, ImageSharpService _imagesharpservice, ImageService _imageService) : ControllerBase
+    public class ImagesController(ImageSharpService _imagesharpservice, ImageService _imageService) : ControllerBase
     {
-        private readonly OpiskelijanKuvapankki2_0Context db = _db;
+        
         private readonly ImageSharpService imagesharpservice = _imagesharpservice;
         private readonly ImageService imageservice = _imageService;
 
@@ -21,8 +21,8 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ReturnImage(string imagename)//Api end point Palauttaa kuvan
         {
-            var image = await db.Images.FirstOrDefaultAsync(i => i.ImageName == imagename);
-            if (image == null)
+            var image = await imageservice.GetImageByNameAsync(imagename);
+            if (image == null||image.ImageBytes == null)
             {
                 return NotFound();
             }

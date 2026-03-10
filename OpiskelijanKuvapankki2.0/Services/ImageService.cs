@@ -125,6 +125,12 @@ namespace OpiskelijanKuvapankki2_0.Services
             return await _db.Images.FirstOrDefaultAsync(i => i.ImageId == id);
         }
 
+        public async Task<Image?> GetImageByNameAsync(string imagename)
+        {
+            Image image = await _db.Images.FirstOrDefaultAsync(i => i.ImageName == imagename);
+            return image;
+        }
+
         public async Task<(string Message, Byte[] ?Image)> LoadImageAsync(int id)
         {
             var image = await db.Images.FindAsync(id);//etsii kuvaolion id perusteella
