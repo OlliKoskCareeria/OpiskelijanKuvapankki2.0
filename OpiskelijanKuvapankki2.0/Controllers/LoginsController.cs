@@ -78,33 +78,26 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         }
 
         [HttpDelete("{id}")]
-        public ActionResult DeleteUserAndImages(int id)  //Poistaa käyttäjän ja siihen liitetyt kuvat
+        public async Task<ActionResult> DeleteUserAndImages(int id)  //Poistaa käyttäjän ja siihen liitetyt kuvat
         {
-            try
+            VerificationResult result = await userservice.DeleteUserAndImagesAsync(id);
+
+            if (result.Success == true)
             {
-
-                var login = db.Logins.Find(id);
-
-                if (login != null)
-                {
-                    var userimages = db.Images.Where(c => c.LoginId == login.LoginId);
-
-                        db.Images.RemoveRange(userimages);
-                    
-                        db.Logins.Remove(login);
-
-                        db.SaveChanges();
-                    return Ok(login.Email + " poistettiin.");
-                }
-
-                return NotFound("Käyttäjää" + " ei löytynyt.");
+                return Ok(result);
             }
-            catch (Exception e)
+            else
             {
-                return BadRequest(e.InnerException);
+                if (result.Message != null&&result.Message.Contains("NotFound"))
+                {
+                    return NotFound(result);
+                }
+                else
+                {
+                    return StatusCode(500, result);
+                }
             }
         }
-
         [HttpDelete("{id}/assign-images")]
         public async Task<ActionResult> DeleteUserSaveImages(int id)
         {

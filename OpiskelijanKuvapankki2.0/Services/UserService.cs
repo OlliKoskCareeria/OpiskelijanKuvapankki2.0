@@ -223,7 +223,40 @@ namespace OpiskelijanKuvapankki2_0.Services
             }
         }
 
-        
+        public async Task<VerificationResult> DeleteUserAndImagesAsync(int id)
+        {
+            VerificationResult result = new VerificationResult();
+
+            try
+            {
+
+                var login = db.Logins.Find(id);
+
+                if (login != null)
+                {
+                    var userimages = db.Images.Where(c => c.LoginId == login.LoginId);
+
+                    db.Images.RemoveRange(userimages);
+
+                    db.Logins.Remove(login);
+
+                    db.SaveChanges();
+                    result.Success = true;
+                    result.Message = login.Email + "poistettiin onnistuneesti";
+                  
+                    return result;
+                }
+                result.Success = false;
+                result.Message = "NotFound";
+                return result;
+            }
+            catch 
+            {
+                result.Success = false;
+                result.Message = "Käyttäjän poistossa tapahtui virhe. Yritä uudelleen myöhemmin.";
+                return result;
+            }
+        }
 
         public async Task<PasswordReset?> ForgotPasswordSendCode(Login user)
         {
