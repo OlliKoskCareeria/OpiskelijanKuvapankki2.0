@@ -22,6 +22,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         private readonly IConfiguration configuration = _configuration;
         private readonly IRecaptchaService recaptchaservice = _recaptchaService;
 
+        [EnableRateLimiting("AddNewPolicy")]
         [HttpPost]
         public async Task<ActionResult> AddNew([FromBody] Login newuser)
         {

@@ -172,7 +172,7 @@ builder.Services.AddRateLimiter(options =>
                 HttpContent.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 10,
+                    PermitLimit = 20,
                     Window = TimeSpan.FromSeconds(60),
                     QueueLimit = 0
                 }));
@@ -182,9 +182,19 @@ builder.Services.AddRateLimiter(options =>
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 10,
+            PermitLimit = 5,
             Window = TimeSpan.FromMinutes(5),
             QueueLimit = 0
+        }));
+
+    options.AddPolicy("AddNewPolicy", context =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromMinutes(2),
+            QueueLimit = 2
         }));
 });
 
