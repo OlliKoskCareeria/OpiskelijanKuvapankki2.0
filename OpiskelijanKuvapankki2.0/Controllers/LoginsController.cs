@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
@@ -44,23 +45,25 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             }
 
            
-            string message = userservice.UserValidation(newuser);
+            var validation = await userservice.ValidateUser(newuser);
 
-            Login verifuser = db.Logins.FirstOrDefault(c => c.LoginId == newuser.LoginId);
-
-            if(verifuser == null)
+            if (validation.Success == false)
             {
-                return Ok(new { message });
+                return BadRequest(new { message = validation.Message });
             }
 
-            bool verifyok = await userservice.SendVerifiCode(verifuser);
+            Login validuser = await userservice.CreateUserAsync(newuser);
+
+            
+
+            bool verifyok = await userservice.SendVerifiCode(validuser);
 
             if (verifyok != true)
             {
-                return BadRequest("Sähköpostivahvistuksen lähetys epäonnistui :( yritä myöhemmin uudestaan");
+                return Ok(new { message = "Tunnus luotu, mutta vahvistusviestin lähetys epäonnistui. Voit pyytää uuden viestin myöhemmin." });
             }
 
-            return Ok(new { message });
+            return Ok(new { message = "Jos käyttäjä hyväksyttiin, vahvistusviesti on lähetetty." });
 
         }
 
@@ -70,6 +73,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         {
             
             var result = await userservice.VerifyCode(loginid,code);
+
             if (result.Success == false)
                 return BadRequest(new { message = result.Message });
 

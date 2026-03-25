@@ -9,6 +9,7 @@ using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Net.Mail;
 using System.Reflection.Metadata.Ecma335;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -19,63 +20,59 @@ namespace OpiskelijanKuvapankki2_0.Services
         private readonly IConfiguration getdetails = _getdetails;
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
         private readonly ILogger<LoginsController> logger = _logger;
-        private List<string> domains;
+        private List<string>? domains;
         
         private readonly IEmailService emailService = _emailService;
 
-        public string UserValidation(Login newuser)
+        public async Task<Login> CreateUserAsync(Login newuser)
         {
-            
+            newuser.Pword = HashPassword(newuser.Pword);
 
-            var organisations = db.Organisations.ToList();
-            domains = organisations.Select(x => x.Domain).ToList();
+            await db.Logins.AddAsync(newuser);
+            await db.SaveChangesAsync();
+
+            logger.LogInformation("Uusi käyttäjä {email}", newuser.Email);
+
+            return newuser;
+        }
+        
+
+        public async Task<(bool Success, string Message)> ValidateUser(Login newuser)
+        {
+
+
+            var domains = await db.Organisations.Select(x => x.Domain).ToListAsync();
+
+            var existingLogin = await db.Logins.FirstOrDefaultAsync(l => l.Email == newuser.Email);
+
+            if (existingLogin != null) //Tarkistetaan onko sähköposti käytössä
+            {
+                return (false, "Tunnuksen luonti epäonnistui");
+            }
 
             try
             {
-                var existingLogin = db.Logins.FirstOrDefault(l => l.Email == newuser.Email);//tarkistetaan onko käyttäjätunnus käytössä
-                string newUserDomain = newuser.Email.Split('@')[1];
-                bool emailSyntaxCheck = newuser.Email.Count(c => c == '@') < 2;//tarkistetaan onko käyttäjätunnus sähköposti
-
-                if (emailSyntaxCheck == false)
-                {
-
-                    return ("Käyttäjätunnuksen syntaxi on virheellinen");
-                }
-                if (existingLogin != null)
-                {
-
-                    return ("Tunnuksen luonti ei onnistunut");//Käyttäjätunnus varattu
-                }
-                if (domains.Contains(newUserDomain, StringComparer.OrdinalIgnoreCase) || newuser.Email == AdminUser())//tarkistetaan että sähköposti on hyväksytty
-                {
-                    var emailformessage = newuser.Email;
-                    newuser.Pword = HashPassword(newuser.Pword);
-
-
-
-                    
-                        db.Logins.Add(newuser);
-                        db.SaveChanges();
-                        logger.LogInformation("Uusi käyttäjä {emailformessage}", emailformessage);
-                        return ("lisättiin uusi käyttäjä " + newuser.Email );
-                    
-                }
-                else
-                {
-
-                    return ("Tunnusta ei voi luoda tälle sähköpostiosoitteelle");
-                }
+                var addr = new MailAddress(newuser.Email);    //Tarkistetaan sähköpostin oikea muoto
             }
-            catch (Exception e)
+            catch
             {
-                logger.LogError($"Virhe sisäänkirjautumisessa {DateTime.Now}");
-                return ("Tapahtui virhe. Lue lisää: " + e.InnerException);
+                return (false, "Virheellinen sähköposti");
             }
 
+            string newUserDomain = newuser.Email.Split('@')[1];
 
+            if (domains.Contains(newUserDomain, StringComparer.OrdinalIgnoreCase)
+                || string.Equals(newuser.Email, AdminUser(), StringComparison.OrdinalIgnoreCase)) //Tarkistetaan onko sähköposti hyväksytty
+            {
+
+                return (true, "Tarkistus OK");
+            }
+            else
+            {
+
+                return (false, "Tunnuksen luonti epäonnistui");
+            }
         }
-
-        
         public string AdminUser()
         {
            
