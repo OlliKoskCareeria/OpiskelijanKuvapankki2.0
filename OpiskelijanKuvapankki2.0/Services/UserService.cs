@@ -1,17 +1,12 @@
-﻿
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using OpiskelijanKuvapankki2_0.Controllers;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 using System.Net.Mail;
-using System.Reflection.Metadata.Ecma335;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace OpiskelijanKuvapankki2_0.Services
 {
@@ -314,6 +309,29 @@ namespace OpiskelijanKuvapankki2_0.Services
 
             => _hasher.VerifyHashedPassword(null, hash, password)
                != PasswordVerificationResult.Failed;
+
+        public async Task<bool> EditUser(EditLoginDto dto) 
+        {
+            try
+            {
+                var login = await db.Logins.FindAsync(dto.LoginId);
+
+                if (login == null)
+                    return false;
+
+                
+                login.Contact = dto.Contact;
+                login.Name = dto.Name;
+
+                await db.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
 
 
     }

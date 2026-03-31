@@ -7,6 +7,7 @@ using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Threading.Tasks;
+using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
 
 
 
@@ -68,6 +69,16 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
         }
 
+        [HttpPost("edit")]
+        public async Task<IActionResult> Edit([FromForm] EditLoginDto edituser) //Rutiini nimi ja yhetystietojen muokkaamista varten
+        {
+            bool success = await userservice.EditUser(edituser);
+            if (success == true)
+            {
+                return Ok(new { message = "Käyttäjätietojen muokkaus onnistui" });
+            }
+            else return BadRequest(new { message = "Käyttäjätietojen muokkaus epäonnistui" });    
+        }
 
         [HttpPost("verify")]
         public async Task<IActionResult> Verify (int loginid, string code)
