@@ -2,7 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace OpiskelijanKuvapankki2_0.Models
+namespace OpiskelijanKuvapankki2_0.Configurations
 {
     public class RecaptchaHeaderParameter : IOperationFilter
     {

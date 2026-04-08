@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
-using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Dtos.AuthDtos;
+using OpiskelijanKuvapankki2_0.Responses;
 namespace OpiskelijanKuvapankki2_0.Services.Interfaces
 {
     public interface IAuthenticateService

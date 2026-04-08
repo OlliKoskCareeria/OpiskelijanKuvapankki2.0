@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OpiskelijanKuvapankki2_0.Dtos.ImageDtos;
 using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Responses;
 using System.Runtime.CompilerServices;
 
 

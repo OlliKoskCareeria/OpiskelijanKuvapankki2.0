@@ -1,4 +1,4 @@
-﻿namespace OpiskelijanKuvapankki2_0.Models
+﻿namespace OpiskelijanKuvapankki2_0.Dtos.ImageDtos
 {
     public class ImageDetails //tämä luokka vastaa frontendissä näytettäviä tietoja
     {

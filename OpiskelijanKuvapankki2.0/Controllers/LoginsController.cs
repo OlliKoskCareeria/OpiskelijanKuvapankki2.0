@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
 using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Responses;
 using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Threading.Tasks;

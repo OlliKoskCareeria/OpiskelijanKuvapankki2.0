@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.Extensions.Options;
-using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Configurations;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;

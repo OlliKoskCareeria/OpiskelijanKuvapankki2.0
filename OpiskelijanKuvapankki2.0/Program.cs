@@ -15,6 +15,7 @@ using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Text;
 using System.Threading.RateLimiting;
+using OpiskelijanKuvapankki2_0.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 

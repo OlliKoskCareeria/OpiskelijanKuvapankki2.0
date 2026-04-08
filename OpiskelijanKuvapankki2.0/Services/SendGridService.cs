@@ -2,7 +2,7 @@
 using SendGrid.Helpers.Mail;
 using Microsoft.Extensions.Options;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
-using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Configurations;
 
 namespace OpiskelijanKuvapankki2_0.Services
 {

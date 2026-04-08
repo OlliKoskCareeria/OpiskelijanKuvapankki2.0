@@ -1,11 +1,13 @@
-﻿using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OpiskelijanKuvapankki2_0.Controllers;
+using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
 using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Responses;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using SixLabors.ImageSharp;
 using System.Net.Mail;
+using System.Security.Claims;
 
 
 namespace OpiskelijanKuvapankki2_0.Services
@@ -365,6 +367,10 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         public async Task<OperationResult> RequestEmailChange(UpdateEmailDto update)
         {
+    //        var loginId = int.Parse(
+    //    User.FindFirst(ClaimTypes.NameIdentifier).Value
+    //);
+
             var oldverification = await db.EmailChangeRequests.FirstOrDefaultAsync(x => x.LoginId == update.LoginId);
             if (oldverification != null)
             {
@@ -378,8 +384,8 @@ namespace OpiskelijanKuvapankki2_0.Services
             request.NewEmail = update.NewEmail;
             request.Code = HashPassword(code);
             request.Attempts = 0;
-            request.CreatedAt = DateTime.Now;
-            request.TimeValid = DateTime.Now.AddMinutes(30);
+            request.CreatedAt = DateTime.UtcNow;
+            request.TimeValid = DateTime.UtcNow.AddMinutes(30);
 
             var message = $"Vahvista uusi sähköpostiosoite. Tämä koodi on voimassa 30minuuttia:{code}";
             try
@@ -412,6 +418,11 @@ namespace OpiskelijanKuvapankki2_0.Services
         {
             OperationResult result = new OperationResult();
 
+            //        var loginId = int.Parse(
+            //    User.FindFirst(ClaimTypes.NameIdentifier).Value
+            //);
+
+
             var changerequest = await db.EmailChangeRequests.FirstOrDefaultAsync(v => v.LoginId == loginId);
 
             if (changerequest == null)
@@ -420,7 +431,7 @@ namespace OpiskelijanKuvapankki2_0.Services
                 result.Success = false;
                 return result;
             }
-            if (changerequest.TimeValid <= DateTime.Now || changerequest.Attempts > 4)
+            if (changerequest.TimeValid <= DateTime.UtcNow || changerequest.Attempts > 4)
             {
                 result.Message = "Koodi ei ole voimassa";
                 result.Success = false;

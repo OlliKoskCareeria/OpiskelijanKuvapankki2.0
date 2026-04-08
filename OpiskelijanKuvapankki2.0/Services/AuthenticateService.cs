@@ -2,7 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using OpiskelijanKuvapankki2_0.Configurations;
+using OpiskelijanKuvapankki2_0.Dtos.AuthDtos;
 using OpiskelijanKuvapankki2_0.Models;
+using OpiskelijanKuvapankki2_0.Responses;
 using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System;

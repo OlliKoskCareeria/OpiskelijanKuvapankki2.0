@@ -1,4 +1,4 @@
-﻿namespace OpiskelijanKuvapankki2_0.Models
+﻿namespace OpiskelijanKuvapankki2_0.Dtos.AuthDtos
 {
     public class AuthResponse
     {

@@ -1,5 +1,5 @@
-﻿using OpiskelijanKuvapankki2_0.Controllers;
-using OpiskelijanKuvapankki2_0.Models;
+﻿using OpiskelijanKuvapankki2_0.Configurations;
+using OpiskelijanKuvapankki2_0.Controllers;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Globalization;
 using System.Text.Json;
