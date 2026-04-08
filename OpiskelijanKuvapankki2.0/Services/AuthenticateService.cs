@@ -118,9 +118,9 @@ namespace OpiskelijanKuvaPankki.Services
             
         }
 
-        public async Task<VerificationResult> ResetPasswordAsync(ResetPasswordRequest request)//lisää käsittely, jossa token poistetaan 5 yrityksen jälkeen ja rutiini joka päättää mitä tehdään jos sama sähköposti pyytää useita tokeneita
+        public async Task<OperationResult> ResetPasswordAsync(ResetPasswordRequest request)//lisää käsittely, jossa token poistetaan 5 yrityksen jälkeen ja rutiini joka päättää mitä tehdään jos sama sähköposti pyytää useita tokeneita
         {
-            VerificationResult result = new();
+            OperationResult result = new();
 
             var user = await db.Logins.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)

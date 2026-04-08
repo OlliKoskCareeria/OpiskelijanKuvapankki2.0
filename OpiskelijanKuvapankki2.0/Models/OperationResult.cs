@@ -1,6 +1,6 @@
 ﻿namespace OpiskelijanKuvapankki2_0.Models
 {
-    public class VerificationResult
+    public class OperationResult
     {
         
             public bool Success { get; set; }

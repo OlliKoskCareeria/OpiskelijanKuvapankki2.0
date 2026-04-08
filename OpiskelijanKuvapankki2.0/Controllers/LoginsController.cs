@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
 using OpiskelijanKuvapankki2_0.Services.Interfaces;
 using System.Threading.Tasks;
-using OpiskelijanKuvapankki2_0.Dtos.LoginDtos;
-
 
 
 namespace OpiskelijanKuvapankki2_0.Controllers
@@ -68,9 +70,35 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             return Ok(new { message = "Jos käyttäjä hyväksyttiin, vahvistusviesti on lähetetty." });
 
         }
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("request-email-change")]
+        public async Task<IActionResult>RequestEmailChange([FromBody]UpdateEmailDto updatemail)
+        {
 
+            var result = await userservice.ChangeEmail(updatemail);
+            if(result == true)
+            {
+                return Ok("Vahvistusviesti lähetetty");
+            }
+            else
+            {
+                return BadRequest("Sähköpostin vaihtaminen epäonnistui. Tarkista, että sähköpostiosoite on kirjoitettu oikein (esim. nimi@esimerkki.com). Jos osoite on oikein, palvelimessamme saattaa olla hetkellinen häiriö. Yritä myöhemmin uudelleen.");
+            }
+        }
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("confirm-email-change")]
+        public async Task<IActionResult> ConfirmEmailChange(string code, int loginId)
+        {
+            var result = await userservice.ConfirmEmailChangeAsync(code, loginId);
+
+            if (result.Success == false)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+            return Ok(new {message = result.Message});
+        }
         [HttpPost("edit")]
-        public async Task<IActionResult> Edit([FromForm] EditLoginDto edituser) //Rutiini nimi ja yhetystietojen muokkaamista varten
+        public async Task<IActionResult> Edit([FromForm] EditLoginDto edituser) //Rutiini nimi ja yhteystietojen muokkaamista varten
         {
             bool success = await userservice.EditUser(edituser);
             if (success == true)
@@ -96,7 +124,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteUserAndImages(int id)  //Poistaa käyttäjän ja siihen liitetyt kuvat
         {
-            VerificationResult result = await userservice.DeleteUserAndImagesAsync(id);
+            OperationResult result = await userservice.DeleteUserAndImagesAsync(id);
 
             if (result.Success == true)
             {

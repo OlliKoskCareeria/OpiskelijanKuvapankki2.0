@@ -6,6 +6,6 @@ namespace OpiskelijanKuvapankki2_0.Services.Interfaces
     {
         AuthResponse Authenticate(string KayttajaTunnus, string Ssana);
 
-        Task<VerificationResult> ResetPasswordAsync(ResetPasswordRequest request);
+        Task<OperationResult> ResetPasswordAsync(ResetPasswordRequest request);
     }
 }

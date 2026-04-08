@@ -12,9 +12,9 @@ namespace OpiskelijanKuvapankki2_0.Services
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
         private readonly ILogger<ImageService> logger = _logger;
         private readonly ImageSharpService imageSharpService = _imageSharpService;
-        public VerificationResult DeleteImage(int id)
+        public OperationResult DeleteImage(int id)
         {
-            VerificationResult result = new();
+            OperationResult result = new();
             try
             {
                 var img = db.Images.Find(id);

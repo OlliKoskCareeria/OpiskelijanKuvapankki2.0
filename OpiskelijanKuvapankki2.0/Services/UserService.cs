@@ -16,7 +16,7 @@ namespace OpiskelijanKuvapankki2_0.Services
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
         private readonly ILogger<LoginsController> logger = _logger;
         private List<string>? domains;
-        
+
         private readonly IEmailService emailService = _emailService;
 
         public async Task<Login> CreateUserAsync(Login newuser)
@@ -30,7 +30,7 @@ namespace OpiskelijanKuvapankki2_0.Services
 
             return newuser;
         }
-        
+
 
         public async Task<(bool Success, string Message)> ValidateUser(Login newuser)
         {
@@ -70,12 +70,12 @@ namespace OpiskelijanKuvapankki2_0.Services
         }
         public string AdminUser()
         {
-           
+
             string AdminUserEmail = getdetails["AdminUser:Email"];
             return AdminUserEmail;
         }
 
-        
+
 
         private static string GenerateCode(int length = 6)
         {
@@ -111,19 +111,19 @@ namespace OpiskelijanKuvapankki2_0.Services
             }
         }
 
-        public async Task<VerificationResult> VerifyCode(int loginid, string code)
+        public async Task<OperationResult> VerifyCode(int loginid, string code)
         {
-            VerificationResult result = new VerificationResult();
+            OperationResult result = new OperationResult();
 
-            var record = db.EmailVerifications.FirstOrDefault(v => v.LoginID ==loginid);
+            var record = db.EmailVerifications.FirstOrDefault(v => v.LoginID == loginid);
 
-            if (record == null) 
+            if (record == null)
             {
                 result.Message = "Käyttäjää ei löydy";
                 result.Success = false;
-                return result; 
+                return result;
             }
-            if (record.TimeValid <= DateTime.Now||record.Attempts > 4)
+            if (record.TimeValid <= DateTime.Now || record.Attempts > 4)
             {
                 result.Message = "Koodi ei ole voimassa";
                 result.Success = false;
@@ -132,7 +132,7 @@ namespace OpiskelijanKuvapankki2_0.Services
 
             var checkcode = VerifyPassword(record.Code, code);
 
-            if(checkcode == false)
+            if (checkcode == false)
             {
                 result.Message = "Virheellinen koodi";
                 result.Success = false;
@@ -140,11 +140,12 @@ namespace OpiskelijanKuvapankki2_0.Services
                 await db.SaveChangesAsync();
                 return result;
             }
-            
-            
+
+
             var user = db.Logins.FirstOrDefault(v => v.LoginId == loginid);
 
-            if (user == null) {
+            if (user == null)
+            {
                 result.Message = "Tapahtui odottamaton virhe";
                 result.Success = false;
             }
@@ -154,15 +155,15 @@ namespace OpiskelijanKuvapankki2_0.Services
             user.Status = "VERIFIED";
             db.EmailVerifications.Remove(record);
             await db.SaveChangesAsync();
-                await emailService.SendEmailAsync(user.Email, "Tervetuloa",result.Message);
-                return result;
-            
+            await emailService.SendEmailAsync(user.Email, "Tervetuloa", result.Message);
+            return result;
+
         }
 
-            
-        public async Task<VerificationResult> DeleteUserAssignImages(int id)
+
+        public async Task<OperationResult> DeleteUserAssignImages(int id)
         {
-            VerificationResult result = new VerificationResult();
+            OperationResult result = new OperationResult();
 
             try
             {
@@ -199,7 +200,7 @@ namespace OpiskelijanKuvapankki2_0.Services
                     }
                     db.Images.UpdateRange(userimages);
 
-                   
+
                 }
 
                 db.Logins.Remove(user);
@@ -208,16 +209,17 @@ namespace OpiskelijanKuvapankki2_0.Services
                 result.Message = message;
                 return (result);
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 result.Success = false;
                 result.Message = ex.Message;
                 return (result);
             }
         }
 
-        public async Task<VerificationResult> DeleteUserAndImagesAsync(int id)
+        public async Task<OperationResult> DeleteUserAndImagesAsync(int id)
         {
-            VerificationResult result = new VerificationResult();
+            OperationResult result = new OperationResult();
 
             try
             {
@@ -235,14 +237,14 @@ namespace OpiskelijanKuvapankki2_0.Services
                     db.SaveChanges();
                     result.Success = true;
                     result.Message = login.Email + "poistettiin onnistuneesti";
-                  
+
                     return result;
                 }
                 result.Success = false;
                 result.Message = "NotFound";
                 return result;
             }
-            catch 
+            catch
             {
                 result.Success = false;
                 result.Message = "Käyttäjän poistossa tapahtui virhe. Yritä uudelleen myöhemmin.";
@@ -254,7 +256,7 @@ namespace OpiskelijanKuvapankki2_0.Services
         {
             var now = DateTime.UtcNow;
 
-            
+
 
             var oldcode = await db.PasswordResets.FirstOrDefaultAsync(c => c.UserId == user.LoginId);
 
@@ -285,12 +287,12 @@ namespace OpiskelijanKuvapankki2_0.Services
 
             };
 
-            
+
 
             var message = $"Palauta salasanasi. Tämä koodi on voimassa 15minuuttia:{code}";
             try
             {
-                await emailService.SendEmailAsync(user.Email,"palauta salasanasi", message);
+                await emailService.SendEmailAsync(user.Email, "palauta salasanasi", message);
                 return entity;
             }
             catch (Exception ex)
@@ -310,7 +312,7 @@ namespace OpiskelijanKuvapankki2_0.Services
             => _hasher.VerifyHashedPassword(null, hash, password)
                != PasswordVerificationResult.Failed;
 
-        public async Task<bool> EditUser(EditLoginDto dto) 
+        public async Task<bool> EditUser(EditLoginDto dto)
         {
             try
             {
@@ -319,7 +321,7 @@ namespace OpiskelijanKuvapankki2_0.Services
                 if (login == null)
                     return false;
 
-                
+
                 login.Contact = dto.Contact;
                 login.Name = dto.Name;
 
@@ -332,7 +334,168 @@ namespace OpiskelijanKuvapankki2_0.Services
             }
         }
 
+        public async Task<bool> ChangeEmail(UpdateEmailDto update)
+        {
+            var checkmail = await db.Logins.FirstOrDefaultAsync(x => x.Email == update.NewEmail);
 
+            if (checkmail != null) return false; //tarkistetaan onko kyseinen sähköposti käytössä
+            var checkuser = await db.Logins.FirstOrDefaultAsync(c => c.LoginId == update.LoginId);
+            //var userId = GetUserIdFromClaims();
+            if (checkuser == null) return false; //Frontendistä tulevasta kirjautuneen käyttäjän pyynnöstä pitäisi käytännössä löytyä validi id, mutta tarkistetaan silti löytyykö käyttäjä
+            try
+            {
+                var checksyntax = new MailAddress(update.NewEmail);  //Tarkistetaan sähköpostin muoto
+            }
+            catch
+            {
+                return (false);
+            }
+
+            var verification = await RequestEmailChange(update); //luodaan vahvistus objekti ja lähetetään koodi
+            if (verification.Success == true)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public async Task<OperationResult> RequestEmailChange(UpdateEmailDto update)
+        {
+            var oldverification = await db.EmailChangeRequests.FirstOrDefaultAsync(x => x.LoginId == update.LoginId);
+            if (oldverification != null)
+            {
+                db.EmailChangeRequests.Remove(oldverification);
+                await db.SaveChangesAsync();
+            }
+            OperationResult result = new OperationResult();
+            EmailChangeRequest request = new EmailChangeRequest();
+            var code = GenerateCode();
+            request.LoginId = update.LoginId;
+            request.NewEmail = update.NewEmail;
+            request.Code = HashPassword(code);
+            request.Attempts = 0;
+            request.CreatedAt = DateTime.Now;
+            request.TimeValid = DateTime.Now.AddMinutes(30);
+
+            var message = $"Vahvista uusi sähköpostiosoite. Tämä koodi on voimassa 30minuuttia:{code}";
+            try
+            {
+                await db.EmailChangeRequests.AddAsync(request);
+                await db.SaveChangesAsync();
+
+                await emailService.SendEmailAsync(update.NewEmail, "Vahvista uusi sähköpostiosoite", message);
+
+                result.Success = true;
+                result.Message = "Vahvistuskoodi lähetetty";
+                return result;
+
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = "Päivitys epäonnistui";
+                logger.LogError
+                    (ex, "RequestEmailChange. Pyyntö epäonnistui LoginId: {LoginId}, NewEmail: {NewEmail}",
+                 update.LoginId,
+                 update.NewEmail);
+                return result;
+            }
+
+
+        }
+
+        public async Task<OperationResult> ConfirmEmailChangeAsync(string code, int loginId)
+        {
+            OperationResult result = new OperationResult();
+
+            var changerequest = await db.EmailChangeRequests.FirstOrDefaultAsync(v => v.LoginId == loginId);
+
+            if (changerequest == null)
+            {
+                result.Message = "Käyttäjää ei löydy";
+                result.Success = false;
+                return result;
+            }
+            if (changerequest.TimeValid <= DateTime.Now || changerequest.Attempts > 4)
+            {
+                result.Message = "Koodi ei ole voimassa";
+                result.Success = false;
+                return result;
+            }
+
+            var checkcode = VerifyPassword(changerequest.Code, code);
+
+            if (checkcode == false)
+            {
+                result.Message = "Virheellinen koodi";
+                result.Success = false;
+                changerequest.Attempts++;
+                await db.SaveChangesAsync();
+                return result;
+            }
+            
+                    var user = await db.Logins.FirstOrDefaultAsync(c => c.LoginId == changerequest.LoginId);
+
+                    if (user == null)
+                   {
+                        result.Success = false;
+                        result.Message = "Käyttäjää ei löytynyt";
+                        return result;
+                    }
+            result.Success = true;
+            result.Message = "Sähköpostin päivitys onnistui";
+            var oldmail = user.Email;
+            user.Email = changerequest.NewEmail;
+            db.EmailChangeRequests.Remove(changerequest);
+            try
+            {
+
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+
+                logger.LogError(ex, "Tietokannan päivitys epäonnistui ConfirmEmailChangeAsync. LoginId: {LoginId}, NewEmail: {NewEmail}",
+                changerequest.LoginId,
+                changerequest.NewEmail);
+                    
+                result.Success = false;
+                result.Message = "Sähköpostin päivitys epäonnistui";
+                return result;
+            }
+            if (result.Success == true)
+            {
+                try
+                {
+
+                    await emailService.SendEmailAsync(oldmail, "Turvallisuus tiedote", "Tilisi sähköposti vaihdettiin. Jos, tämä et ollut sinä, ota yhteyttä tukipalveluumme");
+                    await emailService.SendEmailAsync(user.Email, "Turvallisuus tiedote", "Tilisi sähköpostiosoite on päivitetty");
+                    return result;
+                }
+                catch (Exception ex)
+                {
+
+                    logger.LogError(ex, "Vahvistusviestin lähetys epäonnistui ConfirmEmailChangeAsync LoginId: {LoginId}, NewEmail: {NewEmail}",
+                    changerequest.LoginId,
+                    changerequest.NewEmail);
+
+                    result.Success = true;
+                    result.Message = "Sähköpostin päivitys onnistui. Vahvistusviestiä ei lähetetty.";
+                    return result;
+                }
+            }
+            else
+            {
+                result.Success = false;
+                result.Message = "Sähköpostin päivitys epäonnistui";
+                return result;
+            }
+            
+        }
 
     }
 }

@@ -23,8 +23,9 @@ public partial class OpiskelijanKuvapankki2_0Context : DbContext
 
     public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
     public virtual DbSet<Organisation> Organisations { get; set; }
-
     public virtual DbSet<PasswordReset> PasswordResets { get; set; }
+
+    public virtual DbSet<EmailChangeRequest> EmailChangeRequests { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=local");

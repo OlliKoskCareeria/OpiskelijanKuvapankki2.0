@@ -75,7 +75,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
         {
-            VerificationResult result = await _authenticateService.ResetPasswordAsync(request);
+            OperationResult result = await _authenticateService.ResetPasswordAsync(request);
 
             if(result.Success == false)
             {
