@@ -323,11 +323,11 @@ namespace OpiskelijanKuvapankki2_0.Services
             => _hasher.VerifyHashedPassword(null, hash, password)
                != PasswordVerificationResult.Failed;
 
-        public async Task<bool> EditUser(EditLoginDto dto)
+        public async Task<bool> EditUser(int id,EditLoginDto dto)
         {
             try
             {
-                var login = await db.Logins.FindAsync(dto.LoginId);
+                var login = await db.Logins.FindAsync(id);
 
                 if (login == null)
                     return false;

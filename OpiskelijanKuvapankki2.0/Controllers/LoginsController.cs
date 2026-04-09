@@ -98,10 +98,11 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             }
             return Ok(new {message = result.Message});
         }
-        [HttpPost("edit")]
-        public async Task<IActionResult> Edit([FromForm] EditLoginDto edituser) //Rutiini nimi ja yhteystietojen muokkaamista varten
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit(int id, [FromForm] EditLoginDto edituser) //Rutiini nimi ja yhteystietojen muokkaamista varten
         {
-            bool success = await userservice.EditUser(edituser);
+            bool success = await userservice.EditUser(id,edituser);
             if (success == true)
             {
                 return Ok(new { message = "Käyttäjätietojen muokkaus onnistui" });
