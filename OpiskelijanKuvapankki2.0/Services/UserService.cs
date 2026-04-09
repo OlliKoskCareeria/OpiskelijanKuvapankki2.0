@@ -21,9 +21,18 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         private readonly IEmailService emailService = _emailService;
 
-        public async Task<Login> CreateUserAsync(Login newuser)
+        public async Task<Login> CreateUserAsync(NewLoginDto newUserDto)
         {
-            newuser.Pword = HashPassword(newuser.Pword);
+            var newuser = new Login
+            {
+                Email = newUserDto.Email,
+                Name = newUserDto.Name,
+                Contact = newUserDto.Contact,
+                Pword = HashPassword(newUserDto.Pword),
+                
+            };
+
+            
 
             await db.Logins.AddAsync(newuser);
             await db.SaveChangesAsync();
@@ -34,7 +43,7 @@ namespace OpiskelijanKuvapankki2_0.Services
         }
 
 
-        public async Task<(bool Success, string Message)> ValidateUser(Login newuser)
+        public async Task<(bool Success, string Message)> ValidateUser(NewLoginDto newuser)
         {
 
 
@@ -238,7 +247,7 @@ namespace OpiskelijanKuvapankki2_0.Services
 
                     db.SaveChanges();
                     result.Success = true;
-                    result.Message = login.Email + "poistettiin onnistuneesti";
+                    result.Message = login.Email + " poistettiin onnistuneesti";
 
                     return result;
                 }

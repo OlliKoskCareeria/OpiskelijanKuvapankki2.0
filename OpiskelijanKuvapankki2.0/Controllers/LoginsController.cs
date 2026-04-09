@@ -28,7 +28,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
 
         [EnableRateLimiting("AddNewPolicy")]
         [HttpPost]
-        public async Task<ActionResult> AddNew([FromBody] Login newuser)
+        public async Task<ActionResult> AddNew([FromBody] NewLoginDto newuser)
         {
             if (configuration.GetValue<bool>("Recaptcha:Enabled"))
             {
