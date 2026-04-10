@@ -66,8 +66,9 @@ namespace OpiskelijanKuvaPankki.Services
             {
                 Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, foundUser.LoginId.ToString()),
-                    new Claim(ClaimTypes.Role, "Admin"),
+                    new Claim(ClaimTypes.NameIdentifier, foundUser.LoginId.ToString()),
+                    new Claim(ClaimTypes.Name, foundUser.Email),
+                    new Claim(ClaimTypes.Role, "User"),
                     new Claim(ClaimTypes.Version, "V3.1")
                 }),
                 Expires = DateTime.UtcNow.AddDays(3),

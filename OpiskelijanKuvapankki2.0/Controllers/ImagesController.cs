@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OpiskelijanKuvapankki2_0.Dtos.ImageDtos;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Services;
+using OpiskelijanKuvapankki2_0.Extensions;
 using SixLabors.ImageSharp;
 using static System.Net.WebRequestMethods;
+using System.Security.Claims;
 namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
@@ -65,27 +68,27 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             return Ok(imageDetails);
         }
 
-
+        [Authorize]
         [HttpPost("Upload")]
-        [Consumes("multipart/form-data")] 
-        public async Task<ActionResult<Models.Image>> AddNew
-            (
-        [FromForm] int LoginId,
-        [FromForm] string CategoryName,
-        [FromForm] string ImageName,
-        IFormFile ImageBytes
-            )
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AddNew([FromForm] UploadImageDto dto)
         {
-            var form = await Request.ReadFormAsync();
-            var result = await _imageService.AddNewImageAsync(LoginId, form["CategoryName"], form["ImageName"], ImageBytes);
+            var loginId = User.GetUserId();
+
+            var result = await _imageService.AddNewImageAsync(
+                loginId,
+                dto.CategoryName,
+                dto.ImageName,
+                dto.ImageFile
+            );
 
             if (!result.Success)
-            {
                 return BadRequest(result.Message);
-            }
 
             return Ok(result.Message);
         }
+
+        
 
 
         [HttpGet("download/{id}")]

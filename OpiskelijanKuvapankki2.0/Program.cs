@@ -64,6 +64,32 @@ builder.Services.AddSwaggerGen(c =>
     
     c.OperationFilter<RecaptchaHeaderParameter>();
 
+    
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Enter JWT token : Bearer {your token}"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    
+    });
     //c.AddSecurityDefinition("RecaptchaToken", new OpenApiSecurityScheme
     //{
     //    Name = "X-Recaptcha-Token",
