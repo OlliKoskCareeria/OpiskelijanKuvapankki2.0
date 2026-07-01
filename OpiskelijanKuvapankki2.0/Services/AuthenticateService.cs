@@ -44,7 +44,7 @@ namespace OpiskelijanKuvaPankki.Services
 
 
         
-        public AuthResponse Authenticate(string email, string pword)
+        public AuthResponse? Authenticate(string email, string pword)
         {
 
             var foundUser = db.Logins.SingleOrDefault(x => x.Email == email);
@@ -108,7 +108,7 @@ namespace OpiskelijanKuvaPankki.Services
 
             LoggedUser loggedUser = new LoggedUser();
 
-            loggedUser.UserName = foundUser.Email;
+            loggedUser.UserName = foundUser.Email; //founduser email ei voi olla nolla tässä kohtaa
             loggedUser.LoginId = foundUser.LoginId;
             loggedUser.AccesslevelId = accesslevelid;
             loggedUser.Name = foundUser.Name;

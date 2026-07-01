@@ -52,7 +52,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             var result = imageservice.DeleteImage(id);
             if (!result.Success)
             {
-                return result.Message.Contains("ei löytynyt")
+                return result.Message!.Contains("ei löytynyt")
                     ? NotFound(result.Message)
                     : BadRequest(result.Message);
             }
@@ -75,7 +75,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         {
             var loginId = User.GetUserId();
 
-            var result = await _imageService.AddNewImageAsync(
+            var result = await imageservice.AddNewImageAsync(
                 loginId,
                 dto.CategoryName,
                 dto.ImageName,

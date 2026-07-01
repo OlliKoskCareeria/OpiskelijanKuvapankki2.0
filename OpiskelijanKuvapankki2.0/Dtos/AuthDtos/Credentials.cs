@@ -2,8 +2,8 @@
 {
     public class Credentials
     {
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
 
-        public string PassWord { get; set; }
+        public required string PassWord { get; set; }
     }
 }

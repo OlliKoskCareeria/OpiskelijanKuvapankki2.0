@@ -114,7 +114,9 @@ builder.Services.AddDbContext<OpiskelijanKuvapankki2_0Context>(options => option
 var appSettingsSection = builder.Configuration.GetSection("AppSettings");
 builder.Services.Configure<AppSettings>(appSettingsSection);
 
-var appSettings = appSettingsSection.Get<AppSettings>();
+var appSettings = appSettingsSection.Get<AppSettings>()
+?? throw new InvalidOperationException("AppSettings configuration is missing.");
+
 var key = Encoding.ASCII.GetBytes(appSettings.Key);
 
 builder.Services.AddAuthentication(au =>

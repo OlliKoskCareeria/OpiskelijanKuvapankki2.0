@@ -2,15 +2,15 @@
 {
     public class LoggedUser
     {
-        public string UserName { get; set; }
+        public string ?UserName { get; set; }
 
         public int LoginId { get; set; }
 
-        public string Contact { get; set; }
+        public string ?Contact { get; set; }
 
         public int AccesslevelId { get; set; }
 
-        public string Name { get; set; }
+        public string ?Name { get; set; }
 
         //public string? Token { get; set; }
 

@@ -3,9 +3,9 @@
     
         public class UploadImageDto
         {
-            public string CategoryName { get; set; }
-            public string ImageName { get; set; }
-            public IFormFile ImageFile { get; set; }
+            public required string CategoryName { get; set; }
+            public required string ImageName { get; set; }
+            public IFormFile ?ImageFile { get; set; }
         }
     
 }

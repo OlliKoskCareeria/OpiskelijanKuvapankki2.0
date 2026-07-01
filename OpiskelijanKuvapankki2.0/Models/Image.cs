@@ -11,7 +11,7 @@ public partial class Image
 
     public int? CategoryId { get; set; }
 
-    public string? ImageName { get; set; }
+    public required string ImageName { get; set; }
 
     public string? ImageLink { get; set; }
 

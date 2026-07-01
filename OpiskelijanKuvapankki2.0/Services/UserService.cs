@@ -17,7 +17,7 @@ namespace OpiskelijanKuvapankki2_0.Services
         private readonly IConfiguration getdetails = _getdetails;
         private readonly OpiskelijanKuvapankki2_0Context db = _db;
         private readonly ILogger<LoginsController> logger = _logger;
-        private List<string>? domains;
+        //private List<string>? domains;
 
         private readonly IEmailService emailService = _emailService;
 
@@ -82,7 +82,7 @@ namespace OpiskelijanKuvapankki2_0.Services
         public string AdminUser()
         {
 
-            string AdminUserEmail = getdetails["AdminUser:Email"];
+            string AdminUserEmail = getdetails["AdminUser:Email"]?? string.Empty;
             return AdminUserEmail;
         }
 
@@ -98,14 +98,15 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         public async Task<bool> SendVerifiCode(Login newuser)
         {
-            EmailVerification emailVerification = new EmailVerification();
             var code = GenerateCode();
-            emailVerification.LoginID = newuser.LoginId;
-            emailVerification.Code = _hasher.HashPassword(newuser, code);
-            emailVerification.Attempts = 0;
-            emailVerification.CreatedAt = DateTime.Now;
-            emailVerification.TimeValid = DateTime.Now.AddMinutes(30);
-
+            EmailVerification emailVerification = new EmailVerification
+            {
+                LoginID = newuser.LoginId,
+                Code = _hasher.HashPassword(newuser, code),
+                Attempts = 0,
+                CreatedAt = DateTime.Now,
+                TimeValid = DateTime.Now.AddMinutes(30),
+            };
             db.EmailVerifications.Add(emailVerification);
             db.SaveChanges();
 
@@ -159,6 +160,7 @@ namespace OpiskelijanKuvapankki2_0.Services
             {
                 result.Message = "Tapahtui odottamaton virhe";
                 result.Success = false;
+                return result;
             }
 
             result.Success = true;
@@ -235,7 +237,7 @@ namespace OpiskelijanKuvapankki2_0.Services
             try
             {
 
-                var login = db.Logins.Find(id);
+                var login = await db.Logins.FindAsync(id);
 
                 if (login != null)
                 {
@@ -387,14 +389,25 @@ namespace OpiskelijanKuvapankki2_0.Services
                 await db.SaveChangesAsync();
             }
             OperationResult result = new OperationResult();
-            EmailChangeRequest request = new EmailChangeRequest();
             var code = GenerateCode();
-            request.LoginId = update.LoginId;
-            request.NewEmail = update.NewEmail;
-            request.Code = HashPassword(code);
-            request.Attempts = 0;
-            request.CreatedAt = DateTime.UtcNow;
-            request.TimeValid = DateTime.UtcNow.AddMinutes(30);
+            EmailChangeRequest request = new EmailChangeRequest
+            {
+
+                NewEmail = update.NewEmail,   
+                LoginId = update.LoginId,
+                Code = HashPassword(code),
+                Attempts = 0,
+                CreatedAt = DateTime.UtcNow,
+                TimeValid = DateTime.UtcNow.AddMinutes(30)
+            };
+            //EmailChangeRequest request = new EmailChangeRequest();
+            //var code = GenerateCode();
+            //request.LoginId = update.LoginId;
+            //request.NewEmail = update.NewEmail;
+            //request.Code = HashPassword(code);
+            //request.Attempts = 0;
+            //request.CreatedAt = DateTime.UtcNow;
+            //request.TimeValid = DateTime.UtcNow.AddMinutes(30);
 
             var message = $"Vahvista uusi sähköpostiosoite. Tämä koodi on voimassa 30minuuttia:{code}";
             try

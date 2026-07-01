@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OpiskelijanKuvapankki2_0.Dtos.ImageDtos;
 using OpiskelijanKuvapankki2_0.Models;
 using OpiskelijanKuvapankki2_0.Responses;
@@ -64,7 +65,7 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         public async Task<List<ImageDetails>?> GetImagesByCategoryAsync(string cname)
         {
-            var logins = db.Logins.ToList();
+            var logins = await db.Logins.ToListAsync();
             var images = db.Images.Include(p => p.Category);//lista kuvista
 
             if (images.Count() == 0)
@@ -73,7 +74,7 @@ namespace OpiskelijanKuvapankki2_0.Services
             }
             var categorysimages = images.Where(c => c.Category.CategoryName.Equals(cname)).ToList();//lista tietyn kategorian kuvista
 
-            if (categorysimages == null) 
+            if (categorysimages.IsNullOrEmpty()) 
             {
                 return null;
             }
@@ -124,12 +125,12 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         public async Task<Image?> GetImageByIdAsync(int id)
         {
-            return await _db.Images.FirstOrDefaultAsync(i => i.ImageId == id);
+            return await db.Images.FirstOrDefaultAsync(i => i.ImageId == id);
         }
 
         public async Task<Image?> GetImageByNameAsync(string imagename)
         {
-            Image image = await _db.Images.FirstOrDefaultAsync(i => i.ImageName == imagename);
+            Image? image = await db.Images.FirstOrDefaultAsync(i => i.ImageName == imagename);
             return image;
         }
 
@@ -157,10 +158,10 @@ namespace OpiskelijanKuvapankki2_0.Services
         int loginId,
         string categoryName,
         string imageName,
-        IFormFile imageBytes)
+        IFormFile ?imageBytes)
         {
             var allowedFileTypes = new List<string> { "image/jpeg", "image/png", "image/jpg", "image/webp" };
-            var imageCount = await _db.Images.CountAsync();
+            var imageCount = await db.Images.CountAsync();
 
             try
             {
@@ -183,7 +184,7 @@ namespace OpiskelijanKuvapankki2_0.Services
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     var binaryFile = await imageSharpService.DowngradeImageAsync(memoryStream);
 
-                    var category = await _db.Categories.FirstOrDefaultAsync(c => c.CategoryName.Equals(categoryName));
+                    var category = await db.Categories.FirstOrDefaultAsync(c => c.CategoryName.Equals(categoryName));
                     var categoryId = category?.CategoryId;
 
                     var newImage = new Image
@@ -195,8 +196,8 @@ namespace OpiskelijanKuvapankki2_0.Services
                         LoginId = loginId,
                     };
 
-                    _db.Images.Add(newImage);
-                    await _db.SaveChangesAsync();
+                    db.Images.Add(newImage);
+                    await db.SaveChangesAsync();
 
                     return (true, $"Lisättiin uusi kuva {newImage.ImageName}", newImage);
                 }

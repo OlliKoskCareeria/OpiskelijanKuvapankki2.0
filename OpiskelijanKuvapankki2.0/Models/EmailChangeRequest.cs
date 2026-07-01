@@ -7,9 +7,9 @@
 
             public int LoginId { get; set; }
 
-            public string NewEmail { get; set; }
+            public required string NewEmail { get; set; }
 
-            public string Code { get; set; }
+            public required string Code { get; set; }
 
             public DateTime CreatedAt { get; set; }
 

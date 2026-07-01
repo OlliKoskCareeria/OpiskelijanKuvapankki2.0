@@ -2,7 +2,7 @@
 {
     public class AuthResponse
     {
-        public LoggedUser loggedUser { get; set; }
-        public string Token { get; set; }
+        public LoggedUser? loggedUser { get; set; }
+        public string? Token { get; set; }
     }
 }

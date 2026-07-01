@@ -45,7 +45,7 @@ namespace OpiskelijanKuvapankki2_0.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] Credentials tunnukse)
         {
-            AuthResponse loggedUser = _authenticateService.Authenticate(tunnukse.UserName, tunnukse.PassWord);
+            AuthResponse ?loggedUser = _authenticateService.Authenticate(tunnukse.UserName, tunnukse.PassWord);
 
             if (loggedUser == null)
                 return BadRequest(new { message = "Sisäänkirjautuminen epäonnistui" });

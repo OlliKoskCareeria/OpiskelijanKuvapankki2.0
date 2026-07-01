@@ -24,10 +24,10 @@ namespace OpiskelijanKuvapankki2_0.Services
             var secret = _configuration["Recaptcha:SecretKey"];
             //var minScore = float.Parse(_configuration["Recaptcha:MinimumScore"]);
             var minScore = float.Parse(
-                _configuration["Recaptcha:MinimumScore"],
+                _configuration["Recaptcha:MinimumScore"]!,
                 CultureInfo.InvariantCulture
                 );
-
+            
             var response = await _httpClient.PostAsync(
                 $"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={token}",
                 null);
@@ -42,7 +42,7 @@ namespace OpiskelijanKuvapankki2_0.Services
 
             if (result == null)
             {
-
+                _logger.LogWarning("reCAPTCHA verification failed: Google returned an invalid response.");
                 return false;
             }
             return result.Success
@@ -50,20 +50,20 @@ namespace OpiskelijanKuvapankki2_0.Services
             && result.Action == expectedAction;
         }
 
-        public async Task<bool> VerifyRecaptchaAsync(string token)
-        {
-            var secret = _configuration["Recaptcha:SecretKey"];
-            using var http = new HttpClient();
+        //public async Task<bool> VerifyRecaptchaAsync(string token)
+        //{
+        //    var secret = _configuration["Recaptcha:SecretKey"];
+        //    using var http = new HttpClient();
 
-            var response = await http.PostAsync(
-                $"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={token}",
-                null);
+        //    var response = await http.PostAsync(
+        //        $"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={token}",
+        //        null);
 
-            var json = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<RecaptchaResponse>(json);
+        //    var json = await response.Content.ReadAsStringAsync();
+        //    var result = JsonSerializer.Deserialize<RecaptchaResponse>(json);
 
-            return result.Success;
-        }
+        //    return result.Success;
+        //}
 
         
 

@@ -2,7 +2,7 @@
 {
     public class ImageDetails //tämä luokka vastaa frontendissä näytettäviä tietoja
     {
-        public int ImageId { get; set; }
+        public required int ImageId { get; set; }
 
         public string? ImageName { get; set; }
 
