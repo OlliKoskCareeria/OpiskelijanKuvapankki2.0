@@ -65,32 +65,50 @@ namespace OpiskelijanKuvapankki2_0.Services
 
         public async Task<List<ImageDetails>?> GetImagesByCategoryAsync(string cname)
         {
-            var logins = await db.Logins.ToListAsync();
-            var images = db.Images.Include(p => p.Category);//lista kuvista
+            var imageDetails = await (
+                from image in db.Images
+                join login in db.Logins
+                on image.LoginId equals login.LoginId
+                join category in db.Categories
+                on image.CategoryId equals category.CategoryId
+                where category.CategoryName == cname
+                select new ImageDetails
+    {
+        ImageId = image.ImageId,
+        ImageName = image.ImageName,
+        Category = category.CategoryName,
+        Photographer = login.Name,
+        Contact = login.Contact,
+        ImageLink = image.ImageLink
+    }).ToListAsync();
 
-            if (images.Count() == 0)
-            {
-                return null; 
-            }
-            var categorysimages = images.Where(c => c.Category.CategoryName.Equals(cname)).ToList();//lista tietyn kategorian kuvista
+            return imageDetails.Count == 0 ? null : imageDetails;
+            //var logins = await db.Logins.ToListAsync();
+            //var images = db.Images.Include(p => p.Category);//lista kuvista
 
-            if (categorysimages.IsNullOrEmpty()) 
-            {
-                return null;
-            }
+            //if (images.Count() == 0)
+            //{
+            //    return null; 
+            //}
+            //var categorysimages = images.Where(c => c.Category.CategoryName.Equals(cname)).ToList();//lista tietyn kategorian kuvista
 
-            var imagedetails = categorysimages.Select(image => new ImageDetails //Luodaan kuvadetails luokan mukainen olio, joka palauttaa FrontEndiä varten muokatun datan.
-            {
-                ImageId = image.ImageId,
-                ImageName = image.ImageName,
-                Category = image.Category?.CategoryName,
-                Photographer = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Name,
-                Contact = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Contact,
-                ImageLink = image.ImageLink
-            }).ToList();
+            //if (categorysimages.IsNullOrEmpty()) 
+            //{
+            //    return null;
+            //}
+
+            //var imagedetails = categorysimages.Select(image => new ImageDetails //Luodaan kuvadetails luokan mukainen olio, joka palauttaa FrontEndiä varten muokatun datan.
+            //{
+            //    ImageId = image.ImageId,
+            //    ImageName = image.ImageName,
+            //    Category = image.Category?.CategoryName,
+            //    Photographer = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Name,
+            //    Contact = logins.FirstOrDefault(k => k.LoginId == image.LoginId)?.Contact,
+            //    ImageLink = image.ImageLink
+            //}).ToList();
 
 
-            return imagedetails;
+            //return imagedetails;
         }
 
         public async Task<List<ImageDetails>?> GetImagesByUserAsync(string email)

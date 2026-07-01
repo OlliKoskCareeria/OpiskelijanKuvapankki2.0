@@ -9,6 +9,7 @@ using OpiskelijanKuvapankki2_0.Extensions;
 using SixLabors.ImageSharp;
 using static System.Net.WebRequestMethods;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 namespace OpiskelijanKuvapankki2_0.Controllers
 {
     [Route("api/[controller]")]
@@ -129,6 +130,10 @@ namespace OpiskelijanKuvapankki2_0.Controllers
             try
             {
                 var imagesbycategory = await imageservice.GetImagesByCategoryAsync(cname);
+                if (imagesbycategory.IsNullOrEmpty())
+                {
+                    return NotFound();
+                }
                 return Ok(imagesbycategory);
             }
             catch (Exception ex)
